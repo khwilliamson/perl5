@@ -269,7 +269,7 @@ Function must be called with an already existing SV like
 Performs some preprocessing to the string to ensure that
 it has the correct characteristics of a version.  Flags the
 object if it contains an underscore (which denotes this
-is an alpha version).  The boolean qv denotes that the version
+is an alpha version).  The boolean C<qv> denotes that the version
 should be interpreted as if it had multiple decimals, even if
 it doesn't.
 
@@ -482,7 +482,7 @@ Returns a new version object based on the passed in SV:
 
     SV *sv = new_version(SV *ver);
 
-Does not alter the passed in ver SV.  See "upg_version" if you
+Does not alter the passed in C<ver> SV.  See C<L</upg_version>> if you
 want to upgrade the SV.
 
 =cut
@@ -580,7 +580,7 @@ In-place upgrade of the supplied SV to a version object.
 
     SV *sv = upg_version(SV *sv, bool qv);
 
-Returns a pointer to the upgraded SV.  Set the boolean qv if you want
+Returns a pointer to the upgraded SV.  Set the boolean C<qv> if you want
 to force this SV to be interpreted as an "extended" version.
 
 =cut
@@ -903,7 +903,7 @@ VER_PV:
 Validates that the SV contains valid internal structure for a version object.
 It may be passed either the version object (RV) or the hash itself (HV).  If
 the structure is valid, it returns the HV.  If the structure is invalid,
-it returns NULL.
+it returns C<NULL>.
 
     SV *hv = vverify(sv);
 
@@ -1133,7 +1133,7 @@ Perl_vstringify(pTHX_ SV *vs)
 /*
 =for apidoc vcmp
 
-Version object aware cmp.  Both operands must already have been
+Version object aware C<cmp>.  Both operands must already have been 
 converted into version objects.
 
 =cut
