@@ -1,3 +1,5 @@
+: pack_cat                       # U (Perl_pack_cat)
+: pad_compname_type
 : BEGIN{die "You meant to run regen/embed.pl"} # Stop early if fed to perl.
 :
 : WARNING:  The meanings of some flags have been changed as of v5.31.0
@@ -5413,6 +5415,10 @@ ERTix	|UV	|invlist_highest_range_start				\
 				|NN SV * const invlist
 ERTi	|bool	|invlist_is_iterating					\
 				|NN const SV * const invlist
+ERST	|bool	|invlist_iterpeek					\
+				|NN SV *invlist 			\
+				|NN UV *start				\
+				|NN UV *end
 ERTix	|UV	|invlist_lowest |NN SV * const invlist
 Ep	|U32	|join_exact	|NN RExC_state_t *pRExC_state		\
 				|NN regnode *scan			\

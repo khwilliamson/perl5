@@ -2616,7 +2616,6 @@ S_reg_scan_name(pTHX_ RExC_state_t *pRExC_state, U32 flags)
     Perl_re_printf( aTHX_ fmt "\n",args);                               \
 })
 
-
 STATIC void
 S_parse_lparen_question_flags(pTHX_ RExC_state_t *pRExC_state)
 {

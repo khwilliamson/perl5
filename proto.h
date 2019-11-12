@@ -8277,6 +8277,9 @@ S_dooneliner(pTHX_ const char *cmd, const char *filename)
 # define PERL_ARGS_ASSERT_GET_ANYOFM_CONTENTS   \
         assert(n)
 
+# define PERL_ARGS_ASSERT_INVLIST_ITERPEEK      \
+        assert(invlist); assert(start); assert(end)
+
 # define PERL_ARGS_ASSERT_JOIN_EXACT            \
         assert(pRExC_state); assert(scan); assert(min_subtract); \
         assert(unfolded_multi_char)
@@ -8319,6 +8322,9 @@ PERL_CALLCONV SV *
 Perl_get_ANYOFM_contents(pTHX_ const regnode *n)
         __attribute__warn_unused_result__
         __attribute__visibility__("hidden");
+STATIC bool
+S_invlist_iterpeek(SV *invlist, UV *start, UV *end)
+        __attribute__warn_unused_result__;
 PERL_CALLCONV U32
 Perl_join_exact(pTHX_ RExC_state_t *pRExC_state, regnode *scan, UV *min_subtract, bool *unfolded_multi_char, U32 flags, regnode *val, U32 depth)
         __attribute__visibility__("hidden");
