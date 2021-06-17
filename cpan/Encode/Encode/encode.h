@@ -88,12 +88,7 @@ extern void Encode_DefineEncoding(encode_t *enc);
 #define ENCODE_FALLBACK 4
 #define ENCODE_FOUND_TERM 5
 
-/* Use the perl core value if available; it is portable to EBCDIC */
-#ifdef REPLACEMENT_CHARACTER_UTF8
-#  define FBCHAR_UTF8		REPLACEMENT_CHARACTER_UTF8
-#else
-#  define FBCHAR_UTF8           "\xEF\xBF\xBD"
-#endif
+#define FBCHAR_UTF8		REPLACEMENT_CHARACTER_UTF8
 
 #define  ENCODE_DIE_ON_ERR     0x0001 /* croaks immediately */
 #define  ENCODE_WARN_ON_ERR    0x0002 /* warn on error; may proceed */
@@ -117,16 +112,6 @@ extern void Encode_DefineEncoding(encode_t *enc);
                         && (!(c & ENCODE_ONLY_PRAGMA_WARNINGS) || ckWARN(w)))
 
 #ifdef UTF8SKIP
-#  ifdef EBCDIC   /* The value on early perls is wrong */
-#    undef UTF8_MAXBYTES 
-#    define UTF8_MAXBYTES 14
-#  endif
-#  ifndef UNLIKELY
-#    define UNLIKELY(x) (x)
-#  endif
-#  ifndef LIKELY
-#    define LIKELY(x) (x)
-#  endif
 
 /* EBCDIC requires a later perl to work, so the next two definitions are for
  * ASCII machines only */
