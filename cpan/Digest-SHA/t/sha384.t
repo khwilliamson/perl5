@@ -1,6 +1,11 @@
 use strict;
 use Digest::SHA qw(sha384_hex);
 
+if (ord "A" != 65) {
+    print "1..0 # skip: ASCII-centric test\n";
+    exit;
+}
+
 my @vecs = map { eval } <DATA>;
 
 my $numtests = scalar(@vecs) / 2;

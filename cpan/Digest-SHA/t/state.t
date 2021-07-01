@@ -1,6 +1,11 @@
 use strict;
 use Digest::SHA qw(sha384_hex sha512_hex);
 
+if (ord "A" != 65) {
+    print "1..0 # skip: ASCII-centric test\n";
+    exit;
+}
+
 my @sharsp = (
 	"34aa973cd4c4daa4f61eeb2bdbad27316534016f",
 	"cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0",

@@ -5,6 +5,11 @@
 use strict;
 use Digest::SHA qw(hmac_sha256 hmac_sha384 hmac_sha512);
 
+if (ord "A" != 65) {
+    print "1..0 # skip: ASCII-centric test\n";
+    exit;
+}
+
 my @plex = map { eval } <DATA>;
 
 my $numtests = scalar(@plex) / 3;

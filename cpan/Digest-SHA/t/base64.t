@@ -2,6 +2,11 @@ use strict;
 use Digest::SHA qw(sha1_base64 sha224_base64 sha256_base64
 	sha384_base64 sha512_base64);
 
+if (ord "A" != 65) {
+    print "1..0 # skip: ASCII-centric test\n";
+    exit;
+}
+
 my $in = "abc";
 my @out = map { eval } <DATA>;
 my @fcn = (\&sha1_base64, \&sha224_base64, \&sha256_base64,

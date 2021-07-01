@@ -6,6 +6,11 @@
 use strict;
 use Digest::SHA;
 
+if (ord "A" != 65) {
+    print "1..0 # skip: ASCII-centric test\n";
+    exit;
+}
+
 print "1..1\n";
 
 my $rsp = "b9045a713caed5dff3d3b783e98d1ce5778d8bc331ee4119d707072312af06a7";

@@ -1,6 +1,11 @@
 use strict;
 use Digest::SHA qw(hmac_sha1_hex);
 
+if (ord "A" != 65) {
+    print "1..0 # skip: ASCII-centric test\n";
+    exit;
+}
+
 my @data = map { "Sample #$_" } (1 .. 4);
 
 my @out = (

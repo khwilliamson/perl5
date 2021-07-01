@@ -1,6 +1,11 @@
 use strict;
 use Digest::SHA qw(sha1_hex);
 
+if (ord "A" != 65) {
+    print "1..0 # skip: ASCII-centric test\n";
+    exit;
+}
+
 my $skip = $] < 5.006 ? 1 : 0;
 
 my $TEMPLATE = $] >= 5.006 ? 'U*' : 'C*';
