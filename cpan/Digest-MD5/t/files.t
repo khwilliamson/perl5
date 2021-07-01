@@ -14,8 +14,8 @@ print "1..3\n";
 my $EXPECT;
 if (ord "A" == 193) { # EBCDIC
     $EXPECT = <<EOT;
-0956ffb4f6416082b27d6680b4cf73fc  README
-f9d533188a37309320d2805372db0b0e  MD5.xs
+3cacea57d85e99a496419b55cf0b961b  README
+cc51934d333c733ed3555aa23ba39a6e  MD5.xs
 276da0aa4e9a08b7fe09430c9c5690aa  rfc1321.txt
 EOT
 } else {
