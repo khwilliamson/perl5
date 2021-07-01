@@ -116,19 +116,25 @@ sub write {
 
 # Printed form of the unprintable characters in the lowest range
 # of ASCII characters, listed by ASCII ordinal position.
-my @UNPRINTABLE = qw(
-    0    x01  x02  x03  x04  x05  x06  a
-    b    t    n    v    f    r    x0E  x0F
-    x10  x11  x12  x13  x14  x15  x16  x17
-    x18  x19  x1A  e    x1C  x1D  x1E  x1F
-);
+my @UNPRINTABLE = map { sprintf "x%02x", $_ } (1 .. ord(" ") - 1);
+unshift @UNPRINTABLE, 0;
+$UNPRINTABLE[ord "\a"] = 'a';
+$UNPRINTABLE[ord "\b"] = 'b';
+$UNPRINTABLE[ord "\e"] = 'e';
+$UNPRINTABLE[ord "\f"] = 'f';
+$UNPRINTABLE[ord "\n"] = 'n';
+$UNPRINTABLE[ord "\r"] = 'r';
+$UNPRINTABLE[ord "\t"] = 't';
+$UNPRINTABLE[ord "\cK"] = 'v';
+
+my $NEL = chr utf8::unicode_to_native(0x85);
 
 # Printable characters for escapes
 my %UNESCAPES = (
-    0 => "\x00", z => "\x00", N    => "\x85",
-    a => "\x07", b => "\x08", t    => "\x09",
-    n => "\x0a", v => "\x0b", f    => "\x0c",
-    r => "\x0d", e => "\x1b", '\\' => '\\',
+    0 => "\x00", z => "\x00", N    => $NEL,
+    a =>   "\a", b => "\b",   t    => "\t",
+    n =>   "\n", v => "\cK",  f    => "\f",
+    r =>   "\r", e => "\e",   '\\' => '\\',
 );
 
 # XXX-INGY
@@ -239,7 +245,7 @@ Did you decode with lax ":utf8" instead of strict ":encoding(UTF-8)"?
 
         # Split the file into lines
         my @lines = grep { ! /^\s*(?:\#.*)?\z/ }
-                split /(?:\015{1,2}\012|\015|\012)/, $string;
+                split /(?:\r{1,2}\n|\r|\n)/, $string;
 
         # Strip the initial YAML header
         @lines and $lines[0] =~ /^\%YAML[: ][\d\.]+.*\z/ and shift @lines;
@@ -670,13 +676,14 @@ sub _dump_scalar {
             return $string;
         }
     }
-    if ( $string =~ /[\x00-\x09\x0b-\x0d\x0e-\x1f\x7f-\x9f\'\n]/ ) {
+    if ( $string =~ /[[:cntrl:]']/u ) {
         $string =~ s/\\/\\\\/g;
         $string =~ s/"/\\"/g;
         $string =~ s/\n/\\n/g;
-        $string =~ s/[\x85]/\\N/g;
-        $string =~ s/([\x00-\x1f])/\\$UNPRINTABLE[ord($1)]/g;
-        $string =~ s/([\x7f-\x9f])/'\x' . sprintf("%X",ord($1))/ge;
+        $string =~ s/$NEL/\\N/g;
+        $string =~ s/(\c?)/'\x' . sprintf("%X",ord($1))/ge;
+        $string =~ s/([[:cntrl:]])/\\$UNPRINTABLE[ord($1)]/ag;
+        $string =~ s/([[:cntrl:]])/'\x' . sprintf("%X",ord($1))/uge;
         return qq|"$string"|;
     }
     if ( $string =~ /(?:^[~!@#%&*|>?:,'"`{}\[\]]|^-+$|\s|:\z)/ or
