@@ -509,6 +509,17 @@ sub _parse_version_expression {
 sub _handle_bom {
   my ($self, $fh, $filename) = @_;
 
+  my $UTF8_BOM;
+  if ( "$]" >= 5.008 ) {
+
+    # Works on EBCDIC too
+    $UTF8_BOM = "\x{FEFF}";
+    utf8::encode($UTF8_BOM);
+  }
+  else {
+    $UTF8_BOM = "\x{EF}\x{BB}\x{BF}";
+  }
+
   my $pos = tell $fh;
   return unless defined $pos;
 
@@ -523,10 +534,10 @@ sub _handle_bom {
   elsif ( $buf eq "\x{FF}\x{FE}" ) {
     $encoding = 'UTF-16LE';
   }
-  elsif ( $buf eq "\x{EF}\x{BB}" ) {
-    $buf = ' ';
+  elsif ( $buf eq substr($UTF8_BOM, 0, 2) ) {
+    $buf = ' ' x (length($UTF8_BOM) - 2);
     $count = read $fh, $buf, length $buf;
-    if ( defined $count and $count >= 1 and $buf eq "\x{BF}" ) {
+    if ( defined $count and $count >= 1 and $buf eq substr($UTF8_BOM, 2) ) {
       $encoding = 'UTF-8';
     }
   }
