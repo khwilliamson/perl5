@@ -238,7 +238,7 @@ my $manicontents = do {
     binmode $fh, ':raw';
     <$fh>
 };
-is index($manicontents, "\015\012"), -1, 'MANIFEST no CRLF';
+is index($manicontents, "\r\n"), -1, 'MANIFEST no CRLF';
 
 {
     # EOL normalization in maniadd()
@@ -246,7 +246,7 @@ is index($manicontents, "\015\012"), -1, 'MANIFEST no CRLF';
     # move manifest away:
     rename "MANIFEST", "MANIFEST.bak" or die "Could not rename MANIFEST to MANIFEST.bak: $!";
     my $prev_maniaddresult;
-    my @eol = ("\012","\015","\015\012");
+    my @eol = ("\n","\r","\r\n");
     # for all line-endings:
     for my $i (0..$#eol) {
         my $eol = $eol[$i];
