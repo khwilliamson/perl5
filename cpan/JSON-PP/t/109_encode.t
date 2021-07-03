@@ -5,9 +5,11 @@ use strict;
 use warnings;
 use Test::More;
 
-BEGIN { plan tests => 7 };
+plan tests => 6;
 
 BEGIN { $ENV{PERL_JSON_BACKEND} = 0; }
+
+my $isASCII = ord "A" == 65;
 
 use JSON::PP;
 
@@ -20,9 +22,7 @@ is($json->encode("¶"),                   q|"¶"|); # as is
 
 $json->ascii;
 
-is($json->encode("\xb6"),           q|"\u00b6"|); # latin1
-
-if (ord "A" == 65)  {
+if ($isASCII)  {
     is($json->encode("\xc2\xb6"), q|"\u00c2\u00b6"|); # utf8
     is($json->encode("¶"),        q|"\u00c2\u00b6"|); # utf8
     is($json->encode('あ'), q|"\u00e3\u0081\u0082"|);
