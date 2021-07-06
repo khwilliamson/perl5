@@ -114,10 +114,14 @@ my $json_meta = catfile( test_data_directory(), 'json.meta' );
 {
   local $ENV{PERL_YAML_BACKEND} if not $ENV{PERL_CORE}; # ensure we always get CPAN::META::YAML
 
+  # Assume non-ASCII means EBCDIC; 51 is the correct value for all EBCDIC code
+  # pages Perl has supported
+  my $author = (ord "A" == 65) ? 'Olivier Mengu\xE9' : 'Olivier Mengu\x51';
+
   note '';
   is(Parse::CPAN::Meta->yaml_backend(), 'CPAN::Meta::YAML', 'yaml_backend(): CPAN::Meta::YAML');
   my @yaml   = Parse::CPAN::Meta::LoadFile( $bad_yaml_meta );
-  is($yaml[0]{author}[0], 'Olivier Mengu\xE9', "Bad UTF-8 is replaced");
+  is($yaml[0]{author}[0], $author, "Bad UTF-8 is replaced");
 }
 
 
