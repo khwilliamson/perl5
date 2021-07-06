@@ -16,11 +16,17 @@ diag 'using JSON backend: ' . $JSON . ' ' . $JSON->VERSION
 # Each spec test will need a different bridge and arguments:
 my @spec_tests = (
     ['t/tml-spec/basic-data.tml', 'test_yaml_json', $JSON],
-    ['t/tml-spec/multiline.tml',  'test_yaml_json', $JSON],
+);
+
+if (ord "A" == 65) {
+    push @spec_tests,
+
     # This test is currently failing massively. We use LAST to only run what is
     # covered so far.
-    ['t/tml-spec/unicode.tml', 'test_code_point'],  # uses JSON::PP
-);
+    ['t/tml-spec/unicode.tml', 'test_code_point']; # uses JSON::PP
+
+    # It would take some effort to convert this to be EBCDIC-friendly.
+}
 
 for my $test (@spec_tests) {
     my ($file, $bridge, @args) = @$test;
