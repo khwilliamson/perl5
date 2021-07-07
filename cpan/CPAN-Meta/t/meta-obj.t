@@ -165,7 +165,7 @@ is_deeply(
   "->effective_prereqs()"
 );
 
-is_deeply( [ sort $meta->custom_keys ] , [ 'X_deep', 'x_authority' ],
+is_deeply( [ sort { lc $a cmp lc $b } $meta->custom_keys ] , [ 'x_authority','X_deep' ],
   "->custom_keys"
 );
 
@@ -259,23 +259,33 @@ sub clean_backends {
   return $string;
 }
 
-is(
-  clean_backends($meta->as_string()),
-  clean_backends(read_file('t/data-valid/META-2.json')),
-  'as_string with no arguments defaults to version 2 and JSON',
-);
+TODO: {
+  local $TODO = 'These fail because lowercase on EBCDIC sorts first,'
+              . ' so "Perl" sorts differently than "perl"'
+      if ord "A" != 65;
 
-is(
-  clean_backends($meta->as_string({ version => 2 })),
-  clean_backends(read_file('t/data-valid/META-2.json')),
-  'as_string using version 2 defaults to JSON',
-);
+  my $lc_distmeta = $distmeta;
+  $lc_distmeta->{x_deep} = delete $distmeta->{X_deep};
+  my $lc_meta = CPAN::Meta->new(dclone $lc_distmeta);
 
-is(
-  clean_backends($meta->as_string({ version => 1.4 })),
-  clean_backends(read_file('t/data-valid/META-1_4.yml')),
-  'as_string using version 1.4 defaults to YAML',
-);
+  is(
+    clean_backends($lc_meta->as_string()),
+    clean_backends(read_file('t/data-valid/META-2.json')),
+    'as_string with no arguments defaults to version 2 and JSON',
+  );
+
+  is(
+    clean_backends($lc_meta->as_string({ version => 2 })),
+    clean_backends(read_file('t/data-valid/META-2.json')),
+    'as_string using version 2 defaults to JSON',
+  );
+
+  is(
+    clean_backends($lc_meta->as_string({ version => 1.4 })),
+    clean_backends(read_file('t/data-valid/META-1_4.yml')),
+    'as_string using version 1.4 defaults to YAML',
+  );
+}
 
 done_testing;
 # vim: ts=2 sts=2 sw=2 et :

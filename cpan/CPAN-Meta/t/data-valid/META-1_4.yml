@@ -1,6 +1,4 @@
 ---
-X_deep:
-  deep: structure
 abstract: 'Build and install Perl modules'
 author:
   - 'Ken Williams <kwilliams@cpan.org>'
@@ -46,4 +44,6 @@ resources:
   license: http://dev.perl.org/licenses/
 version: '0.36'
 x_authority: cpan:FLORA
+x_deep:
+  deep: structure
 x_serialization_backend: 'CPAN::Meta::YAML version 0.015'

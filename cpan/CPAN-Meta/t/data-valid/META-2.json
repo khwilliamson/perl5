@@ -1,7 +1,4 @@
 {
-   "X_deep" : {
-      "deep" : "structure"
-   },
    "abstract" : "Build and install Perl modules",
    "author" : [
       "Ken Williams <kwilliams@cpan.org>",
@@ -78,5 +75,8 @@
    },
    "version" : "0.36",
    "x_authority" : "cpan:FLORA",
+   "x_deep" : {
+      "deep" : "structure"
+   },
    "x_serialization_backend" : "JSON::PP version 2.27300"
 }
