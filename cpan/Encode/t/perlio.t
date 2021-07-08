@@ -46,7 +46,7 @@ my %e =
      gb2312   => [ qw/euc-cn hz/],
     );
 
-$/ = "\x0a"; # may fix VMS problem for test #28 and #29
+$/ = "\n"; # may fix VMS problem for test #28 and #29
 
 for my $src (sort keys %e) {
     my $ufile = File::Spec->catfile($dir,"$src.utf");
