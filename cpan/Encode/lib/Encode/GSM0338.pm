@@ -15,6 +15,13 @@ use Encode qw(:fallbacks);
 use parent qw(Encode::Encoding);
 __PACKAGE__->Define('gsm0338');
 
+BEGIN {
+    if (ord("A") == 193) {
+        print "1..0 # Skip: GSM0338 not currently supported on EBCDIC\n";
+        exit 0;
+    }
+}
+
 use utf8;
 
 # Mapping table according to 3GPP TS 23.038 version 16.0.0 Release 16 and ETSI TS 123 038 V16.0.0 (2020-07)
