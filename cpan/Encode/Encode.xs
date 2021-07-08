@@ -715,14 +715,16 @@ PPCODE:
             append_utf8_from_native_byte(*s, &d);
             s++;
 #else
-            UV uv = NATIVE_TO_UNI((UV) *s);
-            s++; /* Above expansion of NATIVE_TO_UNI() is safer this way. */
-            if (UNI_IS_INVARIANT(uv))
-                *d++ = (U8)UTF_TO_NATIVE(uv);
+#  ifndef NATIVE_BYTE_IS_INVARIANT
+#    define NATIVE_BYTE_IS_INVARIANT(c)  UTF8_IS_INVARIANT(c)
+#  endif
+            if (NATIVE_BYTE_IS_INVARIANT(*s))
+                *d++ = *s;
             else {
-                *d++ = (U8)UTF8_EIGHT_BIT_HI(uv);
-                *d++ = (U8)UTF8_EIGHT_BIT_LO(uv);
+                *d++ = (U8)UTF8_EIGHT_BIT_HI(*s);
+                *d++ = (U8)UTF8_EIGHT_BIT_LO(*s);
             }
+            s++;
 #endif
         }
         SvCUR_set(dst, d- (U8 *)SvPVX(dst));
