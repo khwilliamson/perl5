@@ -20,8 +20,12 @@ use Encode qw(decode encode find_encoding _utf8_off);
 use Test::More tests => 32;
 BEGIN { use_ok("Encode::Guess") }
 
-my $ascii  = join('' => map {chr($_)}(0x21..0x7e));
-my $latin1 = join('' => map {chr($_)}(0xa1..0xfe));
+sub to_native($) {
+    return utf8::unicode_to_native(shift);
+}
+
+my $ascii  = join('' => map {chr(to_native($_))}(0x21..0x7e));
+my $latin1 = join('' => map {chr(to_native($_))}(0xa1..0xfe));
 my $utf8on  = join('' => map {chr($_)}(0x3000..0x30fe));
 my $utf8off = $utf8on; _utf8_off($utf8off);
 my $utf16 = encode('UTF-16', $utf8on);
