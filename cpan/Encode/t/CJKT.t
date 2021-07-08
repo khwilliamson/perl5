@@ -5,7 +5,7 @@ BEGIN {
       exit 0;
     }
     if (ord("A") == 193) {
-    print "1..0 # Skip: EBCDIC\n";
+    print "1..0 # Skip: EBCDIC not supported for CJKT character sets\n";
     exit 0;
     }
 # should work w/o PerlIO now!
