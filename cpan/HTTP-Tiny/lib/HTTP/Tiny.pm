@@ -8,6 +8,8 @@ our $VERSION = '0.090';
 
 sub _croak { require Carp; Carp::croak(@_) }
 
+my $blank_re = qr/[ \t]/;
+
 #pod =method new
 #pod
 #pod     $http = HTTP::Tiny->new( %attributes );
@@ -1068,12 +1070,12 @@ my $Printable = sub {
     s/\r/\\r/g;
     s/\n/\\n/g;
     s/\t/\\t/g;
-    s/([^\x20-\x7E])/sprintf('\\x%.2X', ord($1))/ge;
+    s/([[:^print:][:^ascii:]])/sprintf('\\x%.2X', ord($1))/ge;
     $_;
 };
 
-my $Token = qr/[\x21\x23-\x27\x2A\x2B\x2D\x2E\x30-\x39\x41-\x5A\x5E-\x7A\x7C\x7E]/;
-my $Field_Content = qr/[[:print:]]+ (?: [\x20\x09]+ [[:print:]]+ )*/x;
+my $Token = qr/[!#\$%&\'*+\-.0-9A-Z^_`a-z|~]/;
+my $Field_Content = qr/[[:print:]]+ (?: $blank_re+ [[:print:]]+ )*/x;
 
 sub new {
     my ($class, %args) = @_;
@@ -1272,7 +1274,7 @@ sub readline {
     my ($self) = @_;
 
     while () {
-        if ($self->{rbuf} =~ s/\A ([^\x0D\x0A]* \x0D?\x0A)//x) {
+        if ($self->{rbuf} =~ s/\A ([^\r\n]* \r?\n)//x) {
             return $1;
         }
         if (length $self->{rbuf} >= $self->{max_line_size}) {
@@ -1310,7 +1312,7 @@ sub read_header_lines {
          if (++$lines >= $self->{max_header_lines}) {
              die(qq/Header lines exceeds maximum number allowed of $self->{max_header_lines}\n/);
          }
-         elsif ($line =~ /\A ([^\x00-\x1F\x7F:]+) : [\x09\x20]* ([^\x0D\x0A]*)/x) {
+         elsif ($line =~ /\A ([^[:cntrl:]:[:^ascii:]]+) : $blank_re* ([^\r\n]*)/x) {
              my ($field_name) = lc $1;
              if (exists $headers->{$field_name}) {
                  for ($headers->{$field_name}) {
@@ -1323,14 +1325,14 @@ sub read_header_lines {
                  $val = \($headers->{$field_name} = $2);
              }
          }
-         elsif ($line =~ /\A [\x09\x20]+ ([^\x0D\x0A]*)/x) {
+         elsif ($line =~ /\A $blank_re+ ([^\r\n]*)/x) {
              $val
                or die(qq/Unexpected header continuation line\n/);
              next unless length $1;
              $$val .= ' ' if length $$val;
              $$val .= $1;
          }
-         elsif ($line =~ /\A \x0D?\x0A \z/x) {
+         elsif ($line =~ /\A \r?\n \z/x) {
             last;
          }
          else {
@@ -1382,7 +1384,7 @@ sub write_header_lines {
         my $v = $headers->{$k};
         for (ref $v eq 'ARRAY' ? @$v : $v) {
             $_ = '' unless defined $_;
-            $buf .= "$field_name: $_\x0D\x0A";
+            $buf .= "$field_name: $_\r\n";
         }
     }
 
@@ -1406,14 +1408,14 @@ sub write_header_lines {
         }
         for (ref $v eq 'ARRAY' ? @$v : $v) {
             # unwrap a field value if pre-wrapped by user
-            s/\x0D?\x0A\s+/ /g;
+            s/\r?\n\s+/ /g;
             die(qq/Invalid HTTP header field value ($field_name): / . $Printable->($_). "\n")
               unless $_ eq '' || /\A $Field_Content \z/xo;
             $_ = '' unless defined $_;
-            $buf .= "$field_name: $_\x0D\x0A";
+            $buf .= "$field_name: $_\r\n";
         }
     }
-    $buf .= "\x0D\x0A";
+    $buf .= "\r\n";
     return $self->write($buf);
 }
 
@@ -1503,7 +1505,7 @@ sub read_chunked_body {
 
         $self->read_content_body($cb, $response, $len);
 
-        $self->read(2) eq "\x0D\x0A"
+        $self->read(2) eq "\r\n"
           or die(qq/Malformed chunk: missing CRLF after chunk data\n/);
     }
     $self->read_header_lines($response->{headers});
@@ -1529,18 +1531,18 @@ sub write_chunked_body {
         $len += length $data;
 
         my $chunk  = sprintf '%X', length $data;
-           $chunk .= "\x0D\x0A";
+           $chunk .= "\r\n";
            $chunk .= $data;
-           $chunk .= "\x0D\x0A";
+           $chunk .= "\r\n";
 
         $self->write($chunk);
     }
-    $self->write("0\x0D\x0A");
+    $self->write("0\r\n");
     if ( ref $request->{trailer_cb} eq 'CODE' ) {
         $self->write_header_lines($request->{trailer_cb}->())
     }
     else {
-        $self->write("\x0D\x0A");
+        $self->write("\r\n");
     }
     return $len;
 }
@@ -1551,7 +1553,7 @@ sub read_response_header {
 
     my $line = $self->readline;
 
-    $line =~ /\A (HTTP\/(0*\d+\.0*\d+)) [\x09\x20]+ ([0-9]{3}) (?: [\x09\x20]+ ([^\x0D\x0A]*) )? \x0D?\x0A/x
+    $line =~ /\A (HTTP\/(0*\d+\.0*\d+)) $blank_re+ ([0-9]{3}) (?: $blank_re+ ([^\x0D\x0A]*) )? \x0D?\x0A/x
       or die(q/Malformed Status-Line: / . $Printable->($line). "\n");
 
     my ($protocol, $version, $status, $reason) = ($1, $2, $3, $4);
@@ -1572,7 +1574,7 @@ sub write_request_header {
     @_ == 5 || die(q/Usage: $handle->write_request_header(method, request_uri, headers, header_case)/ . "\n");
     my ($self, $method, $request_uri, $headers, $header_case) = @_;
 
-    return $self->write_header_lines($headers, $header_case, "$method $request_uri HTTP/1.1\x0D\x0A");
+    return $self->write_header_lines($headers, $header_case, "$method $request_uri HTTP/1.1\r\n");
 }
 
 sub _do_timeout {
