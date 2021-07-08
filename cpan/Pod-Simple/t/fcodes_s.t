@@ -24,10 +24,8 @@ is( $x->_out("=pod\n\nI like S<bric-a-brac a gogo >.\n"),
 is( $x->_out("=pod\n\nI like S<< bric-a-brac a gogo >>.\n"),
  =>  '<Document><Para>I like <S>bric-a-brac a gogo</S>.</Para></Document>' );
 
-SKIP: {
-  if (chr(65) ne 'A') {
-    skip "Skip because not in ASCIIland", 4;
-  }
+my $unless_ascii = (chr(0) eq '\0') ? '' :
+ "Skip because not in ASCIIland";
 
   is(
     $x->_out( sub { $_[0]->nbsp_for_S(1) },
@@ -49,7 +47,6 @@ SKIP: {
       qq{=pod\n\nI like S<L<Stuff I<like that>|/"bric-a-brac a gogo">>.\n}),
     '<Document><Para>I like <L raw="Stuff I&#60;like that&#62;|/&#34;bric-a-brac a gogo&#34;" section="bric-a-brac a gogo" type="pod">Stuff&#160;<I>like&#160;that</I></L>.</Para></Document>'
   );
-}
 
 &is( $x->_duo( sub { $_[0]->nbsp_for_S(1) },
   "=pod\n\nI like S<bric-a-brac a gogo>.\n",
