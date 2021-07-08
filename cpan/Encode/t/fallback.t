@@ -15,6 +15,10 @@ BEGIN {
     $| = 1;
 }
 
+sub to_native($) {
+    return utf8::unicode_to_native(shift);
+}
+
 use strict;
 #use Test::More qw(no_plan);
 use Test::More tests => 58;
@@ -24,7 +28,7 @@ my $uo = '';
 my $nf  = '';
 my ($af, $aq, $ap, $ah, $ax, $uf, $uq, $up, $uh, $ux, $ac, $uc);
 for my $i (0x20..0x7e){
-    $uo .= chr($i);
+    $uo .= chr(to_native($i));
 }
 $af = $aq = $ap = $ah = $ax = $ac =
 $uf = $uq = $up = $uh = $ux = $uc =
@@ -32,6 +36,7 @@ $nf = $uo;
 
 my $residue = '';
 for my $i (0x80..0xff){
+    $i = to_native($i);
     $uo   .= chr($i);
     $residue    .= chr($i);
     $af .= '?';
