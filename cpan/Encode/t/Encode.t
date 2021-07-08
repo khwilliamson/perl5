@@ -27,8 +27,20 @@ my @destiny = qw(cp1047 cp37 posix-bc);
 my @ebcdic_sets = qw(cp1047 cp37 posix-bc);
 plan tests => 38+$n*@encodings + 2*@source*@destiny*@character_set + 2*@ebcdic_sets*256 + 6 + 3*8;
 
-my $str = join('',map(chr($_),0x20..0x7E));
+my $str = join('',map(chr(utf8::unicode_to_native($_)),0x20..0x7E));
 my $cpy = $str;
+#<<<<<<< HEAD
+#=======
+#is length($str),from_to($cpy,'iso8859-1','Unicode'),"Length Wrong";
+#is $cpy,$str,"ASCII mangled by translating from iso8859-1 to Unicode";
+#$cpy = $str;
+#is from_to($cpy,'Unicode','iso8859-1'),length($str),"Length wrong";
+#is $cpy,$str,"ASCII mangled by translating from Unicode to iso8859-1";
+#
+#$str = join('',map(chr(utf8::unicode_to_native($_)),0xa0..0xff));
+#$cpy = $str;
+#is length($str),from_to($cpy,'iso8859-1','Unicode'),"Length Wrong";
+#>>>>>>> Encode.t: Generalize for EBCDIC
 
 my $sym = Encode->getEncoding('symbol');
 my $uni = $sym->decode(encode(ascii => 'a'));
@@ -40,7 +52,7 @@ foreach my $enc (qw(symbol dingbats ascii),@encodings)
  {
   my $tab = Encode->getEncoding($enc);
   is 1,defined($tab),"Could not load $enc";
-  $str = join('',map(chr($_),0x20..0x7E));
+  $str = join('',map(chr(utf8::unicode_to_native($_)),0x20..0x7E));
   $uni = $tab->decode($str);
   $cpy = $tab->encode($uni);
   is $cpy,$str,"$enc mangled translating to Unicode and back";
@@ -103,7 +115,7 @@ is $spc,$mime,"iso 8859-2 and iso-8859-2 not same";
 
 for my $i (256,128,129,256)
  {
-  my $c = chr($i);
+  my $c = chr(utf8::unicode_to_native($i));
   my $s = "$c\n".sprintf("%02X",$i);
   is utf8::valid($s),1,"concat of $i botched";
   utf8::upgrade($s);
@@ -111,9 +123,9 @@ for my $i (256,128,129,256)
  }
 
 # Spot check a few points in/out of utf8
-for my $i (ord('A'),128,256,0x20AC)
+for my $i (65,128,256,0x20AC)
  {
-  my $c = chr($i);
+  my $c = chr(utf8::unicode_to_native($i));
   my $o = encode_utf8($c);
   is decode_utf8($o),$c,"decode_utf8 not inverse of encode_utf8 for $i";
   is encode('utf8',$c),$o,"utf8 encode by name broken for $i";
