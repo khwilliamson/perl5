@@ -3,6 +3,8 @@ BEGIN {
     unshift @INC,  '../lib';
     require Config; Config->import();
     if ($Config{'extensions'} !~ /\bEncode\b/) {
+        # This file is encoded partially in TW, won't get translated properly
+        # to EBCDIC
       print "1..0 # Skip: Encode was not built\n";
       exit 0;
     }
