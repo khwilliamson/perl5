@@ -14,6 +14,7 @@ BEGIN {
     exit 0;
     }
     if (ord("A") == 193) {
+    # File contains raw euc-jp, won't get translated into EBCDIC properly
     print "1..0 # Skip: EBCDIC\n";
     exit 0;
     }
