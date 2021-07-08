@@ -4,8 +4,8 @@
 
 BEGIN {
     if (ord("A") != 65) {
-        print "1..0 # Skip: Encode not working on EBCDIC\n";
-        exit 0;
+      #print "1..0 # Skip: Encode not working on EBCDIC\n";
+      #exit 0;
     }
     unless (eval { require Encode } ) {
         print "1..0 # Skip: no Encode\n";

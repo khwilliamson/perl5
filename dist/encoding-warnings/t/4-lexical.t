@@ -6,8 +6,8 @@ BEGIN {
         exit 0;
     }
     if (ord("A") != 65) {
-        print "1..0 # Skip: Encode not working on EBCDIC\n";
-        exit 0;
+      #print "1..0 # Skip: Encode not working on EBCDIC\n";
+      #exit 0;
     }
     use Config;
     if ($Config::Config{'extensions'} !~ /\bEncode\b/) {
