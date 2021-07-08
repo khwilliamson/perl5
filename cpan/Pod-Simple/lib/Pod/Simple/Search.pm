@@ -694,7 +694,7 @@ sub _esc {
   my $in = $_[0];
   return 'undef' unless defined $in;
   $in =~
-    s<([^\x20\x21\x23\x27-\x3F\x41-\x5B\x5D-\x7E])>
+    s<([[:cntrl:]"\$%&-@\\[:^ascii:]])>
      <'\\x'.(unpack("H2",$1))>eg;
   return qq{"$in"};
 }
