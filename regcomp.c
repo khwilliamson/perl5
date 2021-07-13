@@ -2,6 +2,14 @@
  */
 
 /*
+myperl -Dr -le 'qr/[^[:^print:][:^ascii:]a]/a'
+Compiling REx "[^[:^print:][:^ascii:]a]"
+Final program:
+   1: ANYOF[^\x00-\x1Fa\x7F-\xFF] (11)
+  11: END (0)
+stclass ANYOF[^\x00-\x1Fa\x7F-\xFF] minlen 1 
+Enabling $` $& $' support (0x7).
+ * 
  * 'A fair jaw-cracker dwarf-language must be.'            --Samwise Gamgee
  *
  *     [p.285 of _The Lord of the Rings_, II/iii: "The Ring Goes South"]
