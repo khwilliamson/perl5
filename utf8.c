@@ -5167,6 +5167,157 @@ Perl_foldEQ_utf8_flags(pTHX_ const char *s1, char **pe1, UV l1, bool u1,
     return 1;
 }
 
+#define ASCII_PLATFORM_UTF8_CONTINUATION_MASK                               \
+                        nBIT_MASK(ASCII_PLATFORM_CONTINUATION_INFO_BITS)
+
+U8 *
+Perl_utfn_to_utf8(pTHX_ const U8* const s0, const U8* const send, U8* d0, SSize_t d_len)
+{
+    U8 * d = d0;
+    const U8 * s = s0;
+
+    assert(d_len > 0);
+
+    while (s < send) {
+        STRLEN retlen;
+        UV cp = utf8n_to_uvchr(s, send - s, &retlen, 0);
+        U8 bits_needed;
+        U8 bytes_needed;
+
+        if (cp == 0 && *s != '\0') {
+            cp = UNICODE_REPLACEMENT;
+        }
+
+        if (isASCII(cp)) {
+            bytes_needed = 1;
+        }
+        else {
+            bits_needed = msbit_pos(cp) + 1;
+            bytes_needed = 1 + ((  bits_needed
+                                 + (ASCII_PLATFORM_UTF8_MAXBYTES - 1 - 1))
+                               ) / (ASCII_PLATFORM_UTF8_MAXBYTES - 1);
+
+            if (bytes_needed > 7) {
+                bytes_needed = ASCII_PLATFORM_UTF8_MAXBYTES;
+            }
+        }
+
+        d_len -= bytes_needed;
+        if (d_len < 0) {
+            return NULL;
+        }
+
+        if (bytes_needed == 1) {
+            *d++ = NATIVE_TO_LATIN1(cp);
+        }
+        else {
+            switch (bytes_needed) {
+              default:
+                {
+                    U8 cur_bytes = bytes_needed;
+
+                    while (cur_bytes-- > 7) {
+                        d[cur_bytes] = cp & ASCII_PLATFORM_UTF8_CONTINUATION_MASK;
+                        cp >>= ASCII_PLATFORM_CONTINUATION_INFO_BITS;
+                    }
+                }
+                /* FALLTHROUGH */
+              case 7:
+                d[6] = cp & ASCII_PLATFORM_UTF8_CONTINUATION_MASK;
+                cp >>= ASCII_PLATFORM_CONTINUATION_INFO_BITS;
+                /* FALLTHROUGH */
+              case 6:
+                d[5] = cp & ASCII_PLATFORM_UTF8_CONTINUATION_MASK;
+                cp >>= ASCII_PLATFORM_CONTINUATION_INFO_BITS;
+                /* FALLTHROUGH */
+              case 5:
+                d[4] = cp & ASCII_PLATFORM_UTF8_CONTINUATION_MASK;
+                cp >>= ASCII_PLATFORM_CONTINUATION_INFO_BITS;
+                /* FALLTHROUGH */
+              case 4:
+                d[3] = cp & ASCII_PLATFORM_UTF8_CONTINUATION_MASK;
+                cp >>= ASCII_PLATFORM_CONTINUATION_INFO_BITS;
+                /* FALLTHROUGH */
+              case 3:
+                d[2] = cp & ASCII_PLATFORM_UTF8_CONTINUATION_MASK;
+                cp >>= ASCII_PLATFORM_CONTINUATION_INFO_BITS;
+                /* FALLTHROUGH */
+              case 2:
+                d[1] = cp & ASCII_PLATFORM_UTF8_CONTINUATION_MASK;
+                cp >>= ASCII_PLATFORM_CONTINUATION_INFO_BITS;
+
+                d[0] = UTF_START_MARK(bytes_needed) | UTF_START_MASK(bytes_needed);
+                break;
+            }
+
+            d += bytes_needed;
+        }
+
+        s += retlen;
+    }
+
+    return d0;
+}
+
+#define ASCII_PLATFORM_IS_UTF8_CONTINUATION(c)  inRANGE((c), 0x80, 0xBF)
+
+U8 *
+Perl_utf8_to_utfn(pTHX_ const U8* const s0, const U8* const send, U8* d0, SSize_t d_len)
+{
+    U8 * d = d0;
+    const U8 * s = s0;
+
+    assert(d_len > 0);
+
+    while (s < send) {
+        UV cp;
+        U8 bytes_needed;
+
+        if (isASCII(s[0])) {
+            cp = s[0];
+        }
+        else if (UNLIKELY(s[0] < 0xC2)) {
+            cp = UNICODE_REPLACEMENT;
+        }
+        else {
+            if (UNLIKELY(s[0] == 0xFF)) {
+                bytes_needed = ASCII_PLATFORM_UTF8_MAXBYTES;
+            }
+            else {
+                bytes_needed = 8 - 1 - msbit_pos(~s[0]);
+            }
+
+            cp = s[0] & UTF_START_MASK(bytes_needed);
+
+            bytes_needed--;
+            while (s < send && bytes_needed > 0) {
+                if (! ASCII_PLATFORM_IS_UTF8_CONTINUATION(*s)) {
+                    break;
+                }
+
+                cp <<= ASCII_PLATFORM_CONTINUATION_INFO_BITS;
+                cp |= *s & ASCII_PLATFORM_UTF8_CONTINUATION_MASK;
+
+                s++;
+                bytes_needed--;
+            }
+
+            if (bytes_needed > 0) {     /* early exit */
+                cp = UNICODE_REPLACEMENT;
+            }
+        }
+
+        d_len -= OFFUNISKIP(cp);
+        if (d_len < 0) {
+            return NULL;
+        }
+
+        d = uvoffuni_to_utf8_flags(d, cp, 0);
+    }
+
+    return d0;
+}
+
 /*
  * ex: set ts=8 sts=4 sw=4 et:
  */

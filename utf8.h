@@ -225,6 +225,8 @@ For details, see the description for L<perlapi/uv_to_utf8_flags>.
 /* See explanation below at 'UTF8_MAXBYTES' */
 #define ASCII_PLATFORM_UTF8_MAXBYTES 13
 
+#define ASCII_PLATFORM_CONTINUATION_INFO_BITS 6
+
 #ifdef EBCDIC
 
 /* The equivalent of the next few macros but implementing UTF-EBCDIC are in the
@@ -387,7 +389,7 @@ are in the character. */
  * might want to do this is to extend the set of characters that occupy a
  * single byte when encoded in this hypothetical UTF-8 to additionally include
  * the C1 controls.) */
-#  define UTF_CONTINUATION_BYTE_INFO_BITS 6
+#  define UTF_CONTINUATION_BYTE_INFO_BITS  ASCII_PLATFORM_CONTINUATION_INFO_BITS
 
 /* ^? is defined to be DEL on ASCII systems.  See the definition of toCTRL()
  * for more */
