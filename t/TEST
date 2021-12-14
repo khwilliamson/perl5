@@ -482,11 +482,14 @@ sub _tests_from_manifest {
 		if (!$::core || $t =~ m!^lib/[a-z]!) {
 		    if (defined $extension) {
 			$extension =~ s!/t(:?/\S+)*$!!;
-			# XXX Do I want to warn that I'm skipping these?
-			next if $skip{$extension};
-			my $flat_extension = $extension;
-			$flat_extension =~ s!-!/!g;
-			next if $skip{$flat_extension}; # Foo/Bar may live in Foo-Bar
+
+			# Foo/Bar may live in Foo-Bar
+			my $flat_extension = $extension =~ s!-!/!rg;
+
+			if ($skip{$extension} || $skip{$flat_extension}) {
+			    print STDERR "Skipping testing of $extension\n";
+			    next;
+			}
 		    }
 		    my $path = "../$t";
 		    push @results, $path;
