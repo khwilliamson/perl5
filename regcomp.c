@@ -1,4 +1,7 @@
 /*    regcomp.c
+ *    XXX Things like 
+         /[^[:print:]:[:^ascii:]]/ don't show the to INF part
+ *    
  */
 
 /*
