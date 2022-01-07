@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # $Id: ucm2table,v 2.1 2006/05/03 18:24:10 dankogai Exp $
-#
+# Unclear about EBCDIC, not apparently called
 
 use 5.006;
 use strict;
