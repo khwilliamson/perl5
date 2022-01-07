@@ -1,6 +1,6 @@
 #
 # decode on Perl 5.005, 5.6, 5.8 or later
-# XXX
+# XXX probably skip
 #
 use strict;
 use warnings;
