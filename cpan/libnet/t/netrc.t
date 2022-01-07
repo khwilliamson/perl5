@@ -11,8 +11,8 @@ BEGIN {
     if (!eval { require Socket }) {
         plan skip_all => "no Socket";
     }
-    elsif (ord('A') == 193 && !eval { require Convert::EBCDIC }) {
-        plan skip_all => "EBCDIC but no Convert::EBCDIC";
+    elsif (ord('A') == 193 && $] lt "5.008") {
+        plan skip_all => "EBCDIC needs at least v5.8";
     }
     else {
         plan tests => 20;

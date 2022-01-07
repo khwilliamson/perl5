@@ -39,21 +39,23 @@ use constant CMD_PENDING => 0;
 
 use constant DEF_REPLY_CODE => 421;
 
-my %debug = ();
+my $TOEBCDIC = "";
+$TOEBCDIC .= quotemeta chr utf8::unicode_to_native($_) for 0..255;
+sub NON_ASCII_PLATFORM { ord("A") != 65 }
 
-my $tr = ord "A" == 193 ? Convert::EBCDIC->new() : undef;
+my %debug = ();
 
 sub toebcdic {
   my $cmd = shift;
 
   unless (exists ${*$cmd}{'net_cmd_asciipeer'}) {
     my $string    = $_[0];
-    my $ebcdicstr = $tr->toebcdic($string);
+    my $ebcdicstr = eval '$string =~ tr/\000-\377/' . $TOEBCDIC . '/';
     ${*$cmd}{'net_cmd_asciipeer'} = $string !~ /^\d+/ && $ebcdicstr =~ /^\d+/;
   }
 
   ${*$cmd}{'net_cmd_asciipeer'}
-    ? $tr->toebcdic($_[0])
+    ? eval '$_[0] =~ tr/\000-\377/' . $TOEBCDIC . '/'
     : $_[0];
 }
 
@@ -61,7 +63,7 @@ sub toebcdic {
 sub toascii {
   my $cmd = shift;
   ${*$cmd}{'net_cmd_asciipeer'}
-    ? $tr->toascii($_[0])
+    ? eval '$_[0] =~ tr/' . $TOEBCDIC . '/\000-\377/'
     : $_[0];
 }
 
@@ -285,7 +287,7 @@ sub command {
           : $_;
         } @_
     );
-    $str = $cmd->toascii($str) if $tr;
+    $str = $cmd->toascii($str) if NON_ASCII_PLATFORM();
     $str .= "\015\012";
 
     $cmd->debug_print(1, $str)
@@ -367,7 +369,7 @@ sub getline {
 
   ${*$cmd}{'net_cmd_partial'} = $partial;
 
-  if ($tr) {
+  if (NON_ASCII_PLATFORM()) {
     foreach my $ln (@{${*$cmd}{'net_cmd_lines'}}) {
       $ln = $cmd->toebcdic($ln);
     }

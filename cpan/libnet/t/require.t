@@ -9,8 +9,8 @@ BEGIN {
     if (!eval { require Socket }) {
         print "1..0 # Skip: no Socket\n"; exit 0;
     }
-    if (ord('A') == 193 && !eval { require Convert::EBCDIC }) {
-        print "1..0 # Skip: EBCDIC but no Convert::EBCDIC\n"; exit 0;
+    elsif (ord('A') == 193 && $] lt "5.008") {
+        print "1..0 # Skip: EBCDIC needs at least v5.8";
     }
 }
 
