@@ -36,6 +36,10 @@ for (;;) {
       ok ($name =~ /^fail/, "$name ($@)");
    }
 }
+#invalid character encountered while parsing JSON string, at character offset 679 (before "346410824224264240167...") at t/018_json_checker.t line 34.
+# it is doing it on this test because got
+# ok 33 - pass1.json
+# 
 
 __DATA__
 {"Extra value after close": true} "misplaced quoted value"
