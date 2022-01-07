@@ -1285,6 +1285,7 @@ encoding.  Examples of usage on EBCDIC include:
     $foo = pack("ccxxcc",193,194,195,196);
     # $foo eq "AB\0\0CD"
 
+XXX This isn't true!!!
 The C<"U"> template has been ported to mean "Unicode" on all platforms so
 that
 
