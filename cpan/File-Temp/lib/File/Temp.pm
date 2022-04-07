@@ -168,7 +168,7 @@ use parent 0.221 qw/ IO::Handle IO::Seekable /;
 use overload '""' => "STRINGIFY", '0+' => "NUMIFY",
   fallback => 1;
 
-our $DEBUG = 0;
+our $DEBUG = 1;
 our $KEEP_ALL = 0;
 
 # We are exporting functions
