@@ -716,8 +716,6 @@ Unterminated compressed integer in unpack
 utf8 "\x%X" does not map to Unicode
 Value of logical "%s" too long. Truncating to %i bytes
 waitpid: process %x is not a child of process %x
-Wide character
-Wide character in $/
 Within []-length '*' not allowed in %s
 Within []-length '%c' not allowed in %s
 Wrong size of loadOrdinals array: expected %d, actual %d

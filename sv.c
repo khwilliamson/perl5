@@ -3596,6 +3596,7 @@ Perl_sv_utf8_downgrade_flags(pTHX_ SV *const sv, const bool fail_ok, const U32 f
                         Perl_croak(aTHX_ "Wide character in %s",
                                    OP_DESC(PL_op));
                     else
+                        /* diag_listed_as: Wide character in %s */
                         Perl_croak(aTHX_ "Wide character");
                 }
             }
@@ -8777,6 +8778,7 @@ Perl_sv_gets(pTHX_ SV *const sv, PerlIO *const fp, I32 append)
         else {
             if (SvUTF8(PL_rs)) {
                 if (!sv_utf8_downgrade(PL_rs, TRUE)) {
+                    /* diag_listed_as: Wide character in %s */
                     Perl_croak(aTHX_ "Wide character in $/");
                 }
             }
