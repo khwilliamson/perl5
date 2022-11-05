@@ -7128,6 +7128,10 @@ the plain locale pragma without a parameter (S<C<use locale>>) is in effect.
 #  define POSIX_SETLOCALE_UNLOCK    gwLOCALE_UNLOCK
 #endif
 
+/* stdized_setlocale() is a thin wrapper for posix_setlocale() */
+#define STDIZED_SETLOCALE_LOCK      POSIX_SETLOCALE_LOCK
+#define STDIZED_SETLOCALE_UNLOCK    POSIX_SETLOCALE_UNLOCK
+
 /* Similar to gwLOCALE_LOCK, there are functions that require both the locale
  * and environment to be constant during their execution, and don't change
  * either of those things, but do write to some sort of shared global space.
