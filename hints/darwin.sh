@@ -529,3 +529,6 @@ d_mkostemp=undef
 # Apparently the MACH-O format can't support _Thread_local in shared objects,
 # but clang isn't wise to this, so our probe works but the build fails...
 d_thread_local=undef
+
+d_nl_langinfo=undef
+d_nl_langinfo_l=undef
