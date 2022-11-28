@@ -1968,6 +1968,8 @@ S_new_numeric(pTHX_ const char *newnum)
                                                              NULL, NULL));
     Safefree(scratch_buffer);
 
+#    else
+    PERL_UNUSED_VAR(C_thousands_sep);
 #    endif
 
     PL_numeric_standard = PL_numeric_underlying_is_standard;
