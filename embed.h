@@ -1540,6 +1540,15 @@
 #      endif
 #    endif
 #  endif
+#  if !(defined(USE_QUERYLOCALE))
+#    if defined(PERL_IN_LOCALE_C)
+#      if defined(USE_LOCALE)
+#        if defined(USE_POSIX_2008_LOCALE)
+#define update_PL_curlocales_i(a,b,c)	S_update_PL_curlocales_i(aTHX_ a,b,c)
+#        endif
+#      endif
+#    endif
+#  endif
 #  if !(defined(_MSC_VER))
 #define magic_regdatum_set(a,b)	Perl_magic_regdatum_set(aTHX_ a,b)
 #  endif
@@ -1585,15 +1594,6 @@
 #  if !defined(PURIFY)
 #    if defined(PERL_IN_HV_C)
 #define new_he()		S_new_he(aTHX)
-#    endif
-#  endif
-#  if !defined(USE_QUERYLOCALE)
-#    if defined(PERL_IN_LOCALE_C)
-#      if defined(USE_LOCALE)
-#        if defined(USE_POSIX_2008_LOCALE)
-#define update_PL_curlocales_i(a,b,c)	S_update_PL_curlocales_i(aTHX_ a,b,c)
-#        endif
-#      endif
 #    endif
 #  endif
 #  if !defined(WIN32)
@@ -1776,6 +1776,9 @@
 #define my_querylocale_i(a)	S_my_querylocale_i(aTHX_ a)
 #define setlocale_from_aggregate_LC_ALL(a,b)	S_setlocale_from_aggregate_LC_ALL(aTHX_ a,b)
 #define use_curlocale_scratch()	S_use_curlocale_scratch(aTHX)
+#        if defined(USE_QUERYLOCALE)
+#define querylocale_l(a,b)	S_querylocale_l(aTHX_ a,b)
+#        endif
 #      endif
 #      if defined(USE_POSIX_2008_LOCALE) && defined(USE_QUERYLOCALE)
 #define calculate_LC_ALL(a)	S_calculate_LC_ALL(aTHX_ a)

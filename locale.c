@@ -731,25 +731,6 @@ S_less_dicey_bool_setlocale_r(pTHX_ const int cat, const char * locale)
 #  define querylocale_i(i)      mortalized_pv_copy(my_querylocale_i(i))
 #  define querylocale_c(cat)    querylocale_i(cat##_INDEX_)
 #  define querylocale_r(cat)    querylocale_i(get_category_index(cat,NULL))
-
-#  ifdef USE_QUERYLOCALE
-#    define isSINGLE_BIT_SET(mask) isPOWER_OF_2(mask)
-
-     /* This code used to think querylocale() was valid on LC_ALL.  Make sure
-      * all instances of that have been removed */
-#    define QUERYLOCALE_ASSERT(index)                                       \
-                        __ASSERT_(isSINGLE_BIT_SET(category_masks[index]))
-#    if ! defined(HAS_QUERYLOCALE) && defined(_NL_LOCALE_NAME)
-#      define querylocale_l(index, locale_obj)                              \
-            (QUERYLOCALE_ASSERT(index)                                      \
-             mortalized_pv_copy(nl_langinfo_l(                              \
-                         _NL_LOCALE_NAME(categories[index]), locale_obj)))
-#    else
-#      define querylocale_l(index, locale_obj)                              \
-        (QUERYLOCALE_ASSERT(index)                                          \
-         mortalized_pv_copy(querylocale(category_masks[index], locale_obj)))
-#    endif
-#  endif
 #  if defined(__GLIBC__) && defined(USE_LOCALE_MESSAGES)
 #    define HAS_GLIBC_LC_MESSAGES_BUG
 #    include <libintl.h>
@@ -883,6 +864,34 @@ S_my_querylocale_i(pTHX_ const unsigned int index)
     assert(strNE(retval, ""));
     return retval;
 }
+
+#  ifdef USE_QUERYLOCALE
+#    define isSINGLE_BIT_SET(mask) isPOWER_OF_2(mask)
+
+STATIC const char *
+S_querylocale_l(pTHX_ const unsigned int index, const locale_t locale_obj)
+{
+    PERL_ARGS_ASSERT_QUERYLOCALE_L;
+    assert(isSINGLE_BIT_SET(category_masks[index]));
+
+#    if ! defined(HAS_QUERYLOCALE) && defined(_NL_LOCALE_NAME)
+
+     return mortalized_pv_copy(nl_langinfo_l(_NL_LOCALE_NAME(categories[index]),
+                                                             locale_obj));
+#    else
+
+    gwLOCALE_LOCK;
+    const char * result = mortalized_pv_copy(querylocale(category_masks[index],
+                                                         locale_obj));
+    gwLOCALE_UNLOCK;
+
+    return result;
+
+#    endif
+
+}
+
+#  endif
 
 #  ifdef USE_PL_CURLOCALES
 

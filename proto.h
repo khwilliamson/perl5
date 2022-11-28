@@ -4770,6 +4770,17 @@ STATIC void	S_less_dicey_void_setlocale_i(pTHX_ const unsigned cat_index, const 
 #    endif
 #  endif
 #endif
+#if !(defined(USE_QUERYLOCALE))
+#  if defined(PERL_IN_LOCALE_C)
+#    if defined(USE_LOCALE)
+#      if defined(USE_POSIX_2008_LOCALE)
+STATIC const char*	S_update_PL_curlocales_i(pTHX_ const unsigned int index, const char * new_locale, recalc_lc_all_t recalc_LC_ALL);
+#define PERL_ARGS_ASSERT_UPDATE_PL_CURLOCALES_I	\
+	assert(new_locale)
+#      endif
+#    endif
+#  endif
+#endif
 #if !(defined(_MSC_VER))
 PERL_CALLCONV_NO_RET int	Perl_magic_regdatum_set(pTHX_ SV* sv, MAGIC* mg)
 			__attribute__noreturn__
@@ -5075,17 +5086,6 @@ STATIC void	S_validate_suid(pTHX_ PerlIO *rsfp);
 #if !defined(USE_ITHREADS)
 /* PERL_CALLCONV void	CopFILEGV_set(pTHX_ COP * c, GV * gv); */
 #define PERL_ARGS_ASSERT_COPFILEGV_SET
-#endif
-#if !defined(USE_QUERYLOCALE)
-#  if defined(PERL_IN_LOCALE_C)
-#    if defined(USE_LOCALE)
-#      if defined(USE_POSIX_2008_LOCALE)
-STATIC const char*	S_update_PL_curlocales_i(pTHX_ const unsigned int index, const char * new_locale, recalc_lc_all_t recalc_LC_ALL);
-#define PERL_ARGS_ASSERT_UPDATE_PL_CURLOCALES_I	\
-	assert(new_locale)
-#      endif
-#    endif
-#  endif
 #endif
 #if !defined(WIN32)
 PERL_CALLCONV bool	Perl_do_exec3(pTHX_ const char *incmd, int fd, int do_report)
@@ -5781,6 +5781,10 @@ STATIC const char *	S_setlocale_from_aggregate_LC_ALL(pTHX_ const char * locale,
 	assert(locale)
 STATIC locale_t	S_use_curlocale_scratch(pTHX);
 #define PERL_ARGS_ASSERT_USE_CURLOCALE_SCRATCH
+#      if defined(USE_QUERYLOCALE)
+STATIC const char *	S_querylocale_l(pTHX_ const unsigned int index, const locale_t locale_obj);
+#define PERL_ARGS_ASSERT_QUERYLOCALE_L
+#      endif
 #    endif
 #    if defined(USE_POSIX_2008_LOCALE) && defined(USE_QUERYLOCALE)
 STATIC const char *	S_calculate_LC_ALL(pTHX_ const locale_t cur_obj);
