@@ -456,7 +456,7 @@ sub sort_by_hashed_locale {
     return sort_locales;
 }
 
-my $thread_count = 100;
+my $thread_count = 10;
 #my $thread_count = $^O =~ /linux/i ? 50 : 10;
 my $iterations = 1500;
 #$iterations = 50 if $^O =~ /MSWin32/i;
@@ -1116,24 +1116,24 @@ SKIP: {
         # single thread
         my @thread_already_used_locales;
 
-        print STDERR __FILE__, ": ", __LINE__, ": using all_tests, thread=$i\n";
+        #print STDERR __FILE__, ": ", __LINE__, ": using all_tests, thread=$i\n";
         foreach my $category (sort keys %all_tests) {
-            print STDERR __FILE__, ": ", __LINE__, ": thread $i, $category\n";
-            print STDERR __FILE__, ": ", __LINE__, ": $category count is ", scalar ($all_tests{$category}->@*) if $all_tests{$category};
-            print STDERR ", first name=$all_tests{$category}[0]->{locales}[0]\n" if $all_tests{$category}; #[0]->{locale_name}\n";
+            #print STDERR __FILE__, ": ", __LINE__, ": thread $i, $category\n";
+            #print STDERR __FILE__, ": ", __LINE__, ": $category count is ", scalar ($all_tests{$category}->@*) if $all_tests{$category};
+            #print STDERR ", first name=$all_tests{$category}[0]->{locales}[0]\n" if $all_tests{$category}; #[0]->{locale_name}\n";
             my $skipped = 0;    # Used below to not loop infinitely
 
             # Get the next test case
           NEXT_CANDIDATE:
             my $candidate = shift $all_tests{$category}->@*;
-            print STDERR __FILE__, ": ", __LINE__, ": current= ", Dumper $candidate;
+            #print STDERR __FILE__, ": ", __LINE__, ": current= ", Dumper $candidate;
 
             my $locale_name = $candidate->{locales}[0];
 
             # Avoid, if possible, using the same locale name twice (for
             # different categories) in the same thread.
             if (grep { $locale_name eq $_ } @thread_already_used_locales) {
-                print STDERR __FILE__, ": ", __LINE__, ": ", "Already used $locale_name\n";
+                #print STDERR __FILE__, ": ", __LINE__, ": ", "Already used $locale_name\n";
                 # Look through the synonyms of this locale for an
                 # as-yet-unused one
                 for (my $j = 1; $j < $candidate->{locales}->@*; $j++) {
@@ -1141,7 +1141,7 @@ SKIP: {
                     next if grep { $synonym eq $_ } @thread_already_used_locales;
 
                     $locale_name = $synonym;
-                    print STDERR __FILE__, ": ", __LINE__, ": ", "Found synonym $locale_name\n";
+                    #print STDERR __FILE__, ": ", __LINE__, ": ", "Found synonym $locale_name\n";
                     goto found_synonym;
                 }
 
@@ -1157,7 +1157,7 @@ SKIP: {
                 # Here no synonym was found, this test has already been used,
                 # but there are no unused ones, so have to re-use it.
 
-                print STDERR __FILE__, ": ", __LINE__, ": $locale_name: ", Dumper $candidate;
+                #print STDERR __FILE__, ": ", __LINE__, ": $locale_name: ", Dumper $candidate;
               found_synonym:
             }
 
@@ -1193,12 +1193,12 @@ SKIP: {
             # test cases are cycled through.
             push $all_tests{$category}->@*, $candidate;
         } # End of looping through the categories for this thread
-        print STDERR __FILE__, ": ", __LINE__, ": end of this thread\n";
+        #print STDERR __FILE__, ": ", __LINE__, ": end of this thread\n";
 
         #print STDERR __FILE__, ": ", __LINE__, ": ", Dumper \%all_tests;
     } # End of generating all threads
 
-    print STDERR __FILE__, ': ', __LINE__, ': ', Dumper \@tests_by_thread;
+    #print STDERR __FILE__, ': ', __LINE__, ': ', Dumper \@tests_by_thread;
 
     my @cooked_tests;
     for (my $i = 0; $i < @tests_by_thread; $i++) {
