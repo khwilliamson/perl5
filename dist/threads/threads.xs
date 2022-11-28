@@ -206,6 +206,7 @@ S_ithread_set(pTHX_ ithread *thread)
 {
     dMY_CXT;
     MY_CXT.context = thread;
+    PERL_SET_NON_tTHX_CONTEXT(thread->interp);
 }
 
 STATIC ithread *
