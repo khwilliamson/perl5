@@ -1368,7 +1368,10 @@ SKIP: {
             #printf STDERR \"thread %d started, sleeping %g sec\\n\", threads->tid, \$sleep_time / 1_000_000;
             if (\$sleep_time < 0) {
                 if ($die_on_negative_sleep) {
-                    print STDERR 'thread ', threads->tid, \" would have slept for \$sleep_time usec\\n\";
+                    printf STDERR '\\\$per_thread_startup would need to be '
+                                . \"%g for thread %d to have slept\n\",
+                                  (-\$sleep_time / $thread_count / 1_000_000),
+                                  threads->tid;
                     return;
                 }
             }
