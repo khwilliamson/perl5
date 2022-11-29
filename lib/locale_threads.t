@@ -1464,12 +1464,12 @@ SKIP: {
                     exit;
                 }
 
-                # Update the running status
+                # Update the status
                 \$result &= \$thread_result;
-
-                # Let the other threads run
-                threads->yield();
             }
+
+            # Let the other threads run
+            threads->yield();
 
           # And repeat as long as there are other tests
         } while (threads->list(threads::running));

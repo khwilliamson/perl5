@@ -185,8 +185,8 @@ if ($ARGS{PLATFORM} eq 'win32' && $define{USE_THREAD_SAFE_LOCALE})
 }
 
 if ($define{MULTIPLICITY} && (   $define{USE_POSIX_2008_LOCALE}
-                                || (   $define{WIN32}
-                                    && $define{USE_THREAD_SAFE_LOCALE})))
+                              || (   $ARGS{PLATFORM} eq 'win32'
+                                  && $define{USE_THREAD_SAFE_LOCALE})))
 {
     $define{USE_PERL_SWITCH_LOCALE_CONTEXT}
 }

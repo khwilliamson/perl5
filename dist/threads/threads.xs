@@ -206,7 +206,6 @@ S_ithread_set(pTHX_ ithread *thread)
 {
     dMY_CXT;
     MY_CXT.context = thread;
-#ifdef USE_PERL_SWITCH_LOCALE_CONTEXT
     PERL_SET_NON_tTHX_CONTEXT(thread->interp);
 #endif
 }
