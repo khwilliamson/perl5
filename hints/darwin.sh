@@ -533,3 +533,4 @@ d_thread_local=undef
 d_nl_langinfo=undef
 d_nl_langinfo_l=undef
 i_langinfo=undef
+d_querylocale=undef
