@@ -528,24 +528,27 @@ UTF-8 invariant, this function does not change the contents of C<*ep>.
 PERL_STATIC_INLINE bool
 Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
 {
-    const U8* send;
-    const U8* x = s;
-
     PERL_ARGS_ASSERT_IS_UTF8_INVARIANT_STRING_LOC;
 
     if (len == 0) {
         len = strlen((const char *)s);
     }
 
-    send = s + len;
+    const U8* send = s + len;
+    const U8 * x = s;
 
 /* This looks like 0x010101... */
 #  define PERL_COUNT_MULTIPLIER   (~ (UINTMAX_C(0)) / 0xFF)
 
 /* This looks like 0x808080... */
-#  define PERL_VARIANTS_WORD_MASK (PERL_COUNT_MULTIPLIER * 0x80)
+#  define PERL_VARIANTS_WORD_MASK                                           \
+                           ((PERL_UINTMAX_T) (PERL_COUNT_MULTIPLIER * 0x80))
 #  define PERL_WORDSIZE            sizeof(PERL_UINTMAX_T)
 #  define PERL_WORD_BOUNDARY_MASK (PERL_WORDSIZE - 1)
+#  define PERL_STRING_EXTENDS_TO_END_OF_WORD(s, send)                       \
+                        (__ASSERT_(send > s)                                \
+                         (    (PTR2nat(s)    & ~PERL_WORD_BOUNDARY_MASK)    \
+                          !=  (PTR2nat(send) & ~PERL_WORD_BOUNDARY_MASK)))
 
 /* Evaluates to 0 if 'x' is at a word boundary; otherwise evaluates to 1, by
  * or'ing together the lowest bits of 'x'.  Hopefully the final term gets
@@ -555,69 +558,96 @@ Perl_is_utf8_invariant_string_loc(const U8* const s, STRLEN len, const U8 ** ep)
                                       |   (  PTR2nat(x) >> 1)                 \
                                       | ( ( (PTR2nat(x)                       \
                                            & PERL_WORD_BOUNDARY_MASK) >> 2))))
-
 #ifndef EBCDIC
+#  if BYTEORDER == 0x1234 || BYTEORDER == 0x12345678
+#    define PERL_HAS_MONOTONIC_BYTE_ORDER
+#    define INITIAL_SHIFT_OP   <<
+#  elif BYTEORDER == 0x4321 || BYTEORDER == 0x87654321
+#    define PERL_HAS_MONOTONIC_BYTE_ORDER
+#    define INITIAL_SHIFT_OP   >>
+#  endif
 
-    /* Do the word-at-a-time iff there is at least one usable full word.  That
-     * means that after advancing to a word boundary, there still is at least a
-     * full word left.  The number of bytes needed to advance is 'wordsize -
-     * offset' unless offset is 0. */
-    if ((STRLEN) (send - x) >= PERL_WORDSIZE
+    PERL_UINTMAX_T word_masked;
 
-                            /* This term is wordsize if subword; 0 if not */
-                          + PERL_WORDSIZE * PERL_IS_SUBWORD_ADDR(x)
+    if (PERL_STRING_EXTENDS_TO_END_OF_WORD(s, send)) {
 
-                            /* 'offset' */
-                          - (PTR2nat(x) & PERL_WORD_BOUNDARY_MASK))
-    {
+        /* Find the address of the first byte of the full word containing 's'.
+         * (If each word contains 8 bytes, then 3 bits are used to
+         * address them individually, so to get that first byte, this would
+         * mask off the final 3 bits.) */
+        x = NUM2PTR(const U8 *, PTR2nat(s) & ~PERL_WORD_BOUNDARY_MASK);
 
-        /* Process per-byte until reach word boundary.  XXX This loop could be
-         * eliminated if we knew that this platform had fast unaligned reads */
-        while (PTR2nat(x) & PERL_WORD_BOUNDARY_MASK) {
-            if (! UTF8_IS_INVARIANT(*x)) {
-                if (ep) {
-                    *ep = x;
-                }
-
-                return FALSE;
-            }
-            x++;
+        /* Create a mask that will zero the bytes in the word before the
+         * first byte of 's'; while the bytes after that are the
+         * regular variants mask bytes.  If the first byte is aligned to a word
+         * boundary, there are no bytes in the word before it, so 'mask' is
+         * plain PERL_VARIANTS_WORD_MASK */
+        PERL_UINTMAX_T mask = PERL_VARIANTS_WORD_MASK;
+        if (s != x) {
+            mask = mask  INITIAL_SHIFT_OP  ((s - x) * CHARBITS);
         }
 
-        /* Here, we know we have at least one full word to process.  Process
-         * per-word as long as we have at least a full word left */
+        /* Here:
+         *  1)  'x' points to a word boundary; and
+         *  2)  that word contains the beginning of the string 's' but also
+         *      potentially some bytes before 's'; and
+         *  3)  's' extends at least to the end of the word; and
+         *  4)  'mask' is set up appropriately for the word containing 'x', so
+         *      that ANDing it with 'x' will zero any bytes before 's' */
         do {
-            if ((* (const PERL_UINTMAX_T *) x) & PERL_VARIANTS_WORD_MASK)  {
+            word_masked = mask & (* (const PERL_UINTMAX_T *) x);
 
-                /* Found a variant.  Just return if caller doesn't want its
-                 * exact position */
-                if (! ep) {
+
+            /* Any non-zero bits indicate this contains a variant byte */
+            if (word_masked) {
+                if (! ep) {         /* Caller doesn't care which one */
                     return FALSE;
                 }
 
-#  if   BYTEORDER == 0x1234 || BYTEORDER == 0x12345678    \
-     || BYTEORDER == 0x4321 || BYTEORDER == 0x87654321
+                /* Here, the caller wants to know which byte is the first
+                 * variant one. */
 
-                *ep = x + variant_byte_number(* (const PERL_UINTMAX_T *) x);
-                assert(*ep >= s && *ep < send);
+#  ifdef PERL_HAS_MONOTONIC_BYTE_ORDER
+
+                /* If the byte ordering on this platform, is monotonic, we can
+                 * quickly calculate that. */
+
+                *ep = x + variant_byte_number(word_masked);
+                assert(*ep >= s);
+                assert(*ep < send);
 
                 return FALSE;
 
-#  else   /* If weird byte order, drop into next loop to do byte-at-a-time
-           checks. */
+#  else         /* But if the platform has a weird byte order, drop into next
+                 * loop to look at each byte individally to discover the first
+                 * variant. */
+
+                /* We must not look before the beginning of the string 's'
+                 * (which could otherwise happen in the first iteration of this
+                 * loop if 's' starts in the interior of a word) */
+                if (x < s) {
+                    x = s;
+                }
 
                 break;
 #  endif
             }
 
+            /* The next iteration, if any, will look at an entire word.  This
+             * assignment is redundant for all but the first iteration, but is
+             * cheaper to do it unconditionally than have a conditional */
+            mask = PERL_VARIANTS_WORD_MASK;
+
             x += PERL_WORDSIZE;
 
+            /* Continue if there remains at least one full word left */
         } while (x + PERL_WORDSIZE <= send);
     }
 
 #endif      /* End of ! EBCDIC */
 
-    /* Process per-byte */
+    /* Here, we can't continue to use full word operations.  Process any
+     * remainder per-byte */
     while (x < send) {
         if (! UTF8_IS_INVARIANT(*x)) {
             if (ep) {
@@ -1006,6 +1036,8 @@ Perl_variant_byte_number(PERL_UINTMAX_T word)
 
     /* Get just the msb bits of each byte */
     word &= PERL_VARIANTS_WORD_MASK;
+
+    STATIC_ASSERT_STMT(CHARBITS == 8);  /* Code below assumes this */
 
     /* This should only be called if we know there is a variant byte in the
      * word */
