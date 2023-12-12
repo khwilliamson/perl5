@@ -17452,7 +17452,7 @@ $rm_try
     esac
     case "$d_setlocale" in
         $define)
-            rp="When you set your locale to something besides C$c_utf8_locale, does it do so, or just pretend to?" >&4
+            rp="When you set your locale to something besides C$c_utf8_locale, does it actually do so (and not just pretend to)?" >&4
             dflt=n
             . ./myread
             case "$ans" in
