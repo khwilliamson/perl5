@@ -19,19 +19,15 @@
 #     Karl Williamson
 #
 me=$0
-use64bitall=define 
-usedl=define
 
 # Prepend your favorites with Configure -Dccflags=your_favorites -Dcppflags=your_favourites
 
 # For #ifdefs in code
-def_os390_defs="-DOS390 -DZOS -D_EXT=1";
-#-D userelocatableinc 
+def_os390_defs="-DOS390 -DZOS";
+
 # Turn on POSIX compatibility modes
 #  https://www.ibm.com/support/knowledgecenter/SSLTBW_2.4.0/com.ibm.zos.v2r4.bpxbd00/ftms.htm
 def_os390_defs="$def_os390_defs -D_ALL_SOURCE";
-
-def_os390_defs="$def_os390_defs -Duserelocatableinc "
 
 # For 31-bit addressing mode, we should use xplink (eXtended Performance linking)
 # For 64-bit addressing mode, the standard linkage works well
@@ -83,7 +79,6 @@ if [ "${myfirstchar}" = "23" ]; then # 23 is '#' in ASCII
 else
   ebcdic=true
 fi
-def_os390_cflags="$def_os390_cflags -fvisibility=default"
 
 case "$cc" in
 'xlclang')
