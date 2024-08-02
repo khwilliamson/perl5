@@ -2394,7 +2394,7 @@ CODE
     $self->{DEV_NULL}           ||= "> /dev/null 2>&1";
 
     $self->{NOOP}               ||= '$(TRUE)';
-    $self->{NOECHO}             = '@' unless defined $self->{NOECHO};
+    $self->{NOECHO}             = '' unless defined $self->{NOECHO};
 
     $self->{FIRST_MAKEFILE}     ||= $self->{MAKEFILE} || 'Makefile';
     $self->{MAKEFILE}           ||= $self->{FIRST_MAKEFILE};
