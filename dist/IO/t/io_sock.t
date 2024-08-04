@@ -32,7 +32,7 @@ print "1..26\n";
 
 eval {
     $SIG{ALRM} = sub { die; };
-    alarm 120;
+    alarm 10 * 60;
 };
 
 use IO::Socket;
@@ -42,7 +42,7 @@ my $listen = IO::Socket::INET->new(LocalAddr => 'localhost',
 				Proto => 'tcp',
 				# some systems seem to need as much as 10,
 				# so be generous with the timeout
-				Timeout => 15,
+				Timeout => 150,
 			       ) or die "$!";
 
 print "ok 1\n";
@@ -99,7 +99,7 @@ if(my $pid = fork()) {
 
 # Test various other ways to create INET sockets that should
 # also work.
-$listen = IO::Socket::INET->new(LocalAddr => 'localhost', Listen => '', Timeout => 15) or die "$!";
+$listen = IO::Socket::INET->new(LocalAddr => 'localhost', Listen => '', Timeout => 150) or die "$!";
 $port = $listen->sockport;
 
 if(my $pid = fork()) {
@@ -226,7 +226,7 @@ if( !open( SRC, '<', $0)) {
 ### TEST 16
 ### Start the server
 #
-$listen = IO::Socket::INET->new(LocalAddr => 'localhost', Listen => 2, Proto => 'tcp', Timeout => 15) ||
+$listen = IO::Socket::INET->new(LocalAddr => 'localhost', Listen => 2, Proto => 'tcp', Timeout => 150) ||
     print "not ";
 print "ok 16\n";
 die if( !defined( $listen));
