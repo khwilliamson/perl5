@@ -46,7 +46,7 @@ BEGIN {
 
 MAIN: {
     my %prereq_pms = ();
-    $prereq_pms{'Convert::EBCDIC'} = '0.06' if $^O eq 'os390';
+    #$prereq_pms{'Convert::EBCDIC'} = '0.06' if $^O eq 'os390';
 
     my $xt = 'n';
     if (not running_under_cpan() and not $ENV{PERL_CORE}) {

@@ -20,7 +20,7 @@ use Errno 'EINTR';
 
 BEGIN {
   if (ord "A" == 193) {
-    require Convert::EBCDIC;
+    #require Convert::EBCDIC;
 
     #    Convert::EBCDIC->import;
   }
