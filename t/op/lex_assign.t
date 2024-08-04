@@ -9,6 +9,8 @@ BEGIN {
     set_up_inc('../lib');
 }
 
+watchdog(10);   # Hangs on any backticked things on z/OS.
+
 $| = 1;
 umask 0;
 $xref = \ "";
@@ -262,7 +264,7 @@ done_testing();
 __END__
 ref $xref			# ref
 ref $cstr			# ref nonref
-`$runme -e "print qq[1\\n]"`				# backtick skip(MSWin32)
+`$runme -e "print qq[1\\n]"`	# backtick skip(MSWin32)
 `$undefed`			# backtick undef skip(MSWin32)
 '???'				# glob  (not currently OA_TARGLEX)
 <OP>				# readline
