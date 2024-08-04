@@ -61,102 +61,104 @@ sub check {
   );
 }
 
+my $cr = "\015";
+my $lf = "\012";
 my $cmd;
 
 check(
   # nothing
 
-  ".\015\012"
+  ".${cr}${lf}"
 );
 
 check(
   "a",
 
-  "a\015\012.\015\012",
+  "a${cr}${lf}.${cr}${lf}",
 );
 
 check(
   "a\r",
 
-  "a\015\015\012.\015\012",
+  "a${cr}${cr}${lf}.${cr}${lf}",
 );
 
 check(
   "a\rb",
 
-  "a\015b\015\012.\015\012",
+  "a${cr}b${cr}${lf}.${cr}${lf}",
 );
 
 check(
   "a\rb\n",
 
-  "a\015b\015\012.\015\012",
+  "a${cr}b${cr}${lf}.${cr}${lf}",
 );
 
 check(
   "a\rb\n\n",
 
-  "a\015b\015\012\015\012.\015\012",
+  "a${cr}b${cr}${lf}${cr}${lf}.${cr}${lf}",
 );
 
 check(
   "a\r",
   "\nb",
 
-  "a\015\012b\015\012.\015\012",
+  "a${cr}${lf}b${cr}${lf}.${cr}${lf}",
 );
 
 check(
   "a\r",
   "\nb\n",
 
-  "a\015\012b\015\012.\015\012",
+  "a${cr}${lf}b${cr}${lf}.${cr}${lf}",
 );
 
 check(
   "a\r",
   "\nb\r\n",
 
-  "a\015\012b\015\012.\015\012",
+  "a${cr}${lf}b${cr}${lf}.${cr}${lf}",
 );
 
 check(
   "a\r",
   "\nb\r\n\n",
 
-  "a\015\012b\015\012\015\012.\015\012",
+  "a${cr}${lf}b${cr}${lf}${cr}${lf}.${cr}${lf}",
 );
 
 check(
   "a\n.b\n",
 
-  "a\015\012..b\015\012.\015\012",
+  "a${cr}${lf}..b${cr}${lf}.${cr}${lf}",
 );
 
 check(
   ".a\n.b\n",
 
-  "..a\015\012..b\015\012.\015\012",
+  "..a${cr}${lf}..b${cr}${lf}.${cr}${lf}",
 );
 
 check(
   ".a\n",
   ".b\n",
 
-  "..a\015\012..b\015\012.\015\012",
+  "..a${cr}${lf}..b${cr}${lf}.${cr}${lf}",
 );
 
 check(
   ".a",
   ".b\n",
 
-  "..a.b\015\012.\015\012",
+  "..a.b${cr}${lf}.${cr}${lf}",
 );
 
 check(
   "a\n.",
 
-  "a\015\012..\015\012.\015\012",
+  "a${cr}${lf}..${cr}${lf}.${cr}${lf}",
 );
 
 # Test that datasend() plays nicely with bytes in an upgraded string,
@@ -164,5 +166,5 @@ check(
 check(
   substr("\x{100}", 0, 0) . "\x{e9}",
 
-  "\x{e9}\015\012.\015\012"
+  "\x{e9}${cr}${lf}.${cr}${lf}"
 );
