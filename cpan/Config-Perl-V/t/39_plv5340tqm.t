@@ -35,15 +35,18 @@ foreach my $o (sort qw(
 	)) {
     is ($conf->{build}{options}{$o}, 1, "Runtime option $o set");
     delete $opt->{$o};
-    }
+}
 foreach my $o (sort keys %$opt) {
     is ($conf->{build}{options}{$o}, 0, "Runtime option $o unset");
-    }
+}
 
-eval { require Digest::MD5; };
-my $md5 = $@ ? "0" x 32 : "12cfb15586bf005d29ff4c7ce770aefe";
-ok (my $sig = Config::Perl::V::signature ($conf), "Get signature");
-is ($sig, $md5, "MD5");
+SKIP: {
+    skip "ASCII-centric test", 2 unless ord "A" == 65;
+    eval { require Digest::MD5; };
+    my $md5 = $@ ? "0" x 32 : "12cfb15586bf005d29ff4c7ce770aefe";
+    ok (my $sig = Config::Perl::V::signature ($conf), "Get signature");
+    is ($sig, $md5, "MD5");
+}
 
 is_deeply ($conf->{build}{patches}, [ ], "No patches");
 
