@@ -14,6 +14,9 @@ cmp_ok( $err, "eq", "", '$err eq "" for {family=AF_INET,port=80,sinaddr=127.0.0.
 is( $host, "127.0.0.1", '$host is 127.0.0.1 for NH/NS' );
 is( $service, "80", '$service is 80 for NH/NS' );
 
+TODO: {
+    local $TODO = "The NIx_NO(HOST|SERV) flags return EAI_FAIL on z/OS" if $^O eq 'os390';
+
     ( $err, $host, $service ) = getnameinfo( pack_sockaddr_in( 80, inet_aton( "127.0.0.1" ) ), NI_NUMERICHOST|NI_NUMERICSERV, NIx_NOHOST );
     cmp_ok( $err, "==", 0, '$err == 0 for NIx_NOHOST {family=AF_INET,port=80,sinaddr=127.0.0.1}/NI_NUMERICHOST|NI_NUMERICSERV' );
     is( $host, undef, '$host is undef for NIx_NOHOST' );
@@ -23,6 +26,7 @@ is( $service, "80", '$service is 80 for NH/NS' );
     is( $host, "127.0.0.1", '$host is 127.0.0.1 for NIx_NOSERV' );
     is( $service, undef, '$service is undef for NS, NIx_NOSERV' );
     cmp_ok( $err, "==", 0, '$err == 0 for NIx_NOSERV {family=AF_INET,port=80,sinaddr=127.0.0.1}/NI_NUMERICHOST|NI_NUMERICSERV' );
+}
 
 ( $err, $host, $service ) = getnameinfo( pack_sockaddr_in( 80, inet_aton( "127.0.0.1" ) ), NI_NUMERICSERV );
 cmp_ok( $err, "==", 0, '$err == 0 for {family=AF_INET,port=80,sinaddr=127.0.0.1}/NI_NUMERICSERV' );
