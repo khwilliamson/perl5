@@ -14,13 +14,13 @@ cmp_ok( $err, "eq", "", '$err eq "" for {family=AF_INET,port=80,sinaddr=127.0.0.
 is( $host, "127.0.0.1", '$host is 127.0.0.1 for NH/NS' );
 is( $service, "80", '$service is 80 for NH/NS' );
 
-( $err, $host, $service ) = getnameinfo( pack_sockaddr_in( 80, inet_aton( "127.0.0.1" ) ), NI_NUMERICHOST|NI_NUMERICSERV, NIx_NOHOST );
-is( $host, undef, '$host is undef for NIx_NOHOST' );
-is( $service, "80", '$service is 80 for NS, NIx_NOHOST' );
+    ( $err, $host, $service ) = getnameinfo( pack_sockaddr_in( 80, inet_aton( "127.0.0.1" ) ), NI_NUMERICHOST|NI_NUMERICSERV, NIx_NOHOST );
+    is( $host, undef, '$host is undef for NIx_NOHOST' );
+    is( $service, "80", '$service is 80 for NS, NIx_NOHOST' );
 
-( $err, $host, $service ) = getnameinfo( pack_sockaddr_in( 80, inet_aton( "127.0.0.1" ) ), NI_NUMERICHOST|NI_NUMERICSERV, NIx_NOSERV );
-is( $host, "127.0.0.1", '$host is 127.0.0.1 for NIx_NOSERV' );
-is( $service, undef, '$service is undef for NS, NIx_NOSERV' );
+    ( $err, $host, $service ) = getnameinfo( pack_sockaddr_in( 80, inet_aton( "127.0.0.1" ) ), NI_NUMERICHOST|NI_NUMERICSERV, NIx_NOSERV );
+    is( $host, "127.0.0.1", '$host is 127.0.0.1 for NIx_NOSERV' );
+    is( $service, undef, '$service is undef for NS, NIx_NOSERV' );
 
 ( $err, $host, $service ) = getnameinfo( pack_sockaddr_in( 80, inet_aton( "127.0.0.1" ) ), NI_NUMERICSERV );
 cmp_ok( $err, "==", 0, '$err == 0 for {family=AF_INET,port=80,sinaddr=127.0.0.1}/NI_NUMERICSERV' );
