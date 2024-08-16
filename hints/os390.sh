@@ -96,7 +96,7 @@ def_os390_defs="$def_os390_defs -DYYDYNAMIC";
 
 # LC_MESSAGES only affects the yes/no strings in langinfo; not the things we
 # expect it to
-def_os390_defs="$def_os390_defs -DNO_LOCALE_MESSAGES"
+#def_os390_defs="$def_os390_defs -DNO_LOCALE_MESSAGES"
 
 # Set up feature test macros required for features available on supported z/OS systems
 def_os390_defs="$def_os390_defs -D_OPEN_THREADS=3 -D_UNIX03_SOURCE=1 -D_AE_BIMODAL=1 -D_XOPEN_SOURCE_EXTENDED -D_ALL_SOURCE -D_ENHANCED_ASCII_EXT=0xFFFFFFFF -D_OPEN_SYS_FILE_EXT=1 -D_OPEN_SYS_SOCK_IPV6 -D_XOPEN_SOURCE=600 -D_XOPEN_SOURCE_EXTENDED -D_EXT"
@@ -236,13 +236,12 @@ esac
 #
 # khw believes some of this is obsolete.  DOLLARINNAMES allows '$' in variable
 # names, for whatever reason
-# NOLOC says to use the 1047 code page, and no locale
 case "$usedl" in
 define)
-echo 'cat >.$$.c; '"$cc"' -D_OE_SOCKETS -D_ALL_SOURCE -D_SHR_ENVIRON -E -Wc,"LANGLVL(DOLLARINNAMES)",NOLOC ${1+"$@"} .$$.c | fgrep -v "??="; rm .$$.c' > cppstdin
+echo 'cat >.$$.c; '"$cc"' -D_ALL_SOURCE -D_SHR_ENVIRON -E ${1+"$@"} .$$.c | fgrep -v "??="; rm .$$.c' > cppstdin
    ;;
 *)
-echo 'cat >.$$.c; '"$cc"' -D_OE_SOCKETS -D_ALL_SOURCE -E -Wc,"LANGLVL(DOLLARINNAMES)",NOLOC ${1+"$@"} .$$.c | fgrep -v "??="; rm .$$.c' > cppstdin
+echo 'cat >.$$.c; '"$cc"' -D_ALL_SOURCE -E ${1+"$@"} .$$.c | fgrep -v "??="; rm .$$.c' > cppstdin
    ;;
 esac
 
@@ -300,6 +299,8 @@ fi
 d_gethostbyaddr_r='undef'
 d_gethostbyname_r='undef'
 d_gethostent_r='undef'
+
+#d_nl_langinfo='undef'
 
 # nan() used to not work as expected: nan("") or nan("0") returned zero, not a
 # nan.  This may have been a C89 issue.
