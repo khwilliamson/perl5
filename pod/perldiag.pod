@@ -4317,6 +4317,15 @@ example:
     sub foo ($x, @y)    {} # legal
     sub foo ($x, @y, %) {} # invalid
 
+=item %s must be called in void context
+
+(F) You called the given function in a non-void context.  These
+functions operate on their operand(s) in-place, so don't return a value.
+But they look just like functions that do return a value.  And before
+enough bitter experience led us to to making this an error, it was too
+easy to mistakenly write code that expected that they left the operand
+alone and returned something useful.
+
 =item '/' must follow a numeric type in unpack
 
 (F) You had an unpack template that contained a '/', but this did not

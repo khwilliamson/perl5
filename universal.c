@@ -622,6 +622,86 @@ XS(XS_utf8_upgrade)
     XSRETURN(1);
 }
 
+XS(XS_utf8_native_string_to_latin1); /* prototype to pass -Wmissing-prototypes */
+XS(XS_utf8_native_string_to_latin1)
+{
+    dXSARGS;
+    if (items != 1)
+        croak_xs_usage(cv, "sv");
+    else {
+        SV * const sv = ST(0);
+
+        if (GIMME_V != G_VOID) {
+            /* diag_listed_as: %s must be called in void context */
+            Perl_croak_nocontext("native_string_to_latin1() must be called in void context");
+        }
+
+        XSprePUSH;
+        if (UNLIKELY(! sv)) {
+            XSRETURN_UNDEF;
+        }
+
+        SvGETMAGIC(sv);
+        if (UNLIKELY(! SvOK(sv))) {
+            XSRETURN_UNDEF;
+        }
+
+        if SvUTF8(sv) {
+            Perl_croak_nocontext("Can't handle UTF-8");
+        }
+
+        U8 * s = (U8 *) SvPVX(sv);
+        U8 * e = s + SvCUR(sv);
+        while (s < e) {
+            DEBUG_U(PerlIO_printf(Perl_debug_log, "Converting %02x to %02x\n",
+                                                  *s, NATIVE_TO_LATIN1(*s)));
+            *s = NATIVE_TO_LATIN1(*s);
+            s++;
+        }
+    }
+    XSRETURN(0);
+}
+
+XS(XS_utf8_latin1_string_to_native); /* prototype to pass -Wmissing-prototypes */
+XS(XS_utf8_latin1_string_to_native)
+{
+    dXSARGS;
+    if (items != 1)
+        croak_xs_usage(cv, "sv");
+    else {
+        if (GIMME_V != G_VOID) {
+            /* diag_listed_as: %s must be called in void context */
+            Perl_croak_nocontext("latin1_string_to_native() must be called in void context");
+        }
+
+        SV * const sv = ST(0);
+
+        XSprePUSH;
+        if (UNLIKELY(! sv)) {
+            XSRETURN_UNDEF;
+        }
+
+        SvGETMAGIC(sv);
+        if (UNLIKELY(! SvOK(sv))) {
+            XSRETURN_UNDEF;
+        }
+
+        if SvUTF8(sv) {
+            Perl_croak_nocontext("Can't handle UTF-8");
+        }
+
+        U8 * s = (U8 *) SvPVX(sv);
+        U8 * e = s + SvCUR(sv);
+        while (s < e) {
+            DEBUG_U(PerlIO_printf(Perl_debug_log, "Converting %02x to %02x\n",
+                                                  *s, LATIN1_TO_NATIVE(*s)));
+            *s = LATIN1_TO_NATIVE(*s);
+            s++;
+        }
+    }
+    XSRETURN(0);
+}
+
 XS(XS_utf8_downgrade); /* prototype to pass -Wmissing-prototypes */
 XS(XS_utf8_downgrade)
 {
@@ -1324,6 +1404,8 @@ static const struct xsub_details these_details[] = {
     {"utf8::upgrade", XS_utf8_upgrade, NULL, 0 },
     {"utf8::downgrade", XS_utf8_downgrade, NULL, 0 },
     {"utf8::native_to_unicode", XS_utf8_native_to_unicode, NULL, 0 },
+    {"utf8::native_string_to_latin1", XS_utf8_native_string_to_latin1, NULL, 0 },
+    {"utf8::latin1_string_to_native", XS_utf8_latin1_string_to_native, NULL, 0 },
     {"utf8::unicode_to_native", XS_utf8_unicode_to_native, NULL, 0 },
     {"Internals::SvREADONLY", XS_Internals_SvREADONLY, "\\[$%@];$", 0 },
     {"Internals::SvREFCNT", XS_Internals_SvREFCNT, "\\[$%@];$", 0 },
