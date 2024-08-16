@@ -449,28 +449,14 @@ sub _tests_from_manifest {
 		if (    ord "A" != 65
 		     && defined $extension
 		     && $extension =~ m! \b (?:
-						Archive-Tar/
-					      | Config-Perl-V/
-				              | CPAN-Meta/
-					      | CPAN-Meta-YAML/
-					      | Digest-SHA/
-					      | ExtUtils-MakeMaker/
-					      | HTTP-Tiny/
-					      | IO-Compress/
-					      | JSON-PP/
-					      | libnet/
-					      | MIME-Base64/
-					      | podlators/
+					      dummy that wont match to prevent an empty alternative
+					      | HTTP-Tiny/   # lots of failures; mojibake gone
+					      | podlators/   # Relies on P:Simple
 					      | Pod-Simple/
 					      | Pod-Checker/
-					      | Digest-MD5/
-					      | Test-Harness/
-					      | IPC-Cmd/
-					      | Encode/
-					      | Socket/
-					      | ExtUtils-Manifest/
-					      | Module-Metadata/
-					      | PerlIO-via-QuotedPrint/
+					      | IPC-Cmd/    # No obvious \x constants, but get this in several places:
+							    # Negative length at lib/IO/Handle.pm line 446.
+					      | Encode/	    # defer, Too much output;
 					    )
 				       !x)
 		{
