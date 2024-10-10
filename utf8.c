@@ -1566,13 +1566,22 @@ Perl__utf8n_to_uvchr_msgs_helper(const U8 *s,
     }
 
     /* Check for overflow.  The algorithm requires us to not look past the end
-     * of the current character, even if partial, so the upper limit is 's' */
-    if (UNLIKELY(0 < does_utf8_overflow(s0, s,
-                                         1 /* Do consider overlongs */
-                                        )))
-    {
-        possible_problems |= UTF8_GOT_OVERFLOW;
-        uv = UNICODE_REPLACEMENT;
+     * of the current character, even if partial, so the upper limit is 's'.
+     * It's not an overflow if it's an overlong which actually represents a
+     * smaller number.  So check for that. */
+    int maybe_overflows = does_utf8_overflow(s0, s, 1); /* consider overlongs */
+    if (UNLIKELY(maybe_overflows != 0)) {
+
+        /* >0 implies definitely overflows; <0 means that it would if it's not
+         * also an overlong, but there were not enough bytes examinable to
+         * determine that.  The SHORT malformations indicate that the end of the
+         * character was encountered, so it's not going to be an overlong.  Any
+         * start byte above \xFD on 32 bit sytems overflows.  This check
+         * catches those. */
+        if (maybe_overflows > 0 || (possible_problems & UTF8_GOT_TOO_SHORT))
+            possible_problems |= UTF8_GOT_OVERFLOW;
+            uv = UNICODE_REPLACEMENT;
+        }
     }
 
     /* Check for overlong.  If no problems so far, 'uv' is the correct code
