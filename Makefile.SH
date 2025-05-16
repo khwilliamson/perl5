@@ -127,7 +127,8 @@ true)
 		;;
 	os390*)
             case "$use64bitall" in
-            define|true|[yY]*) shrpldflags='-Wl,dll'
+            #define|true|[yY]*) shrpldflags='-Wl,dll'
+            define|true|[yY]*) shrpldflags='-shared'	# From IBM
                    linklibperl='libperl.x'
                    ;;
             *)     shrpldflags='-Wl,XPLINK,dll'
