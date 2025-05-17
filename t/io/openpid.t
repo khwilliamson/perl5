@@ -13,7 +13,7 @@ BEGIN {
     set_up_inc('../lib');
 }
 
-plan tests => 10;
+plan 'noplan';
 watchdog(15, $^O eq 'MSWin32' ? "alarm" : '');
 
 use Config;
@@ -54,24 +54,35 @@ else {
 $cmd3 = qq/$perl -e "print <>;"/; # hangs waiting for end of STDIN
 $cmd4 = qq/$perl -e "print scalar <>;"/;
 
-#warn "#@cmd1\n#@cmd2\n#$cmd3\n#$cmd4\n";
+warn "#@cmd1\n#@cmd2\n#$cmd3\n#$cmd4\n";
 
 # start the processes
+my $all_ok = 1;
+my ($pid1, $pid2, $pid3, $pid4) = ("", "", "", "");
+$! = 0;
 if ($^O eq 'VMS') {
-    ok( $pid1 = open(FH1, "$cmd1 |"), 'first process started');
-    ok( $pid2 = open(FH2, "$cmd2 |"), '    second' );
+    $all_ok &&= ok( $pid1 = open(FH1, "$cmd1 |"), 'first process started');
+    $all_ok &&= ok( $pid2 = open(FH2, "$cmd2 |"), '    second' );
 }
 else {
-    ok( $pid1 = open(FH1, "-|", @cmd1), 'first process started');
-    ok( $pid2 = open(FH2, "-|", @cmd2), '    second' );
+    $all_ok &&= ok( $pid1 = open(FH1, "-|", @cmd1), 'first process started');
+    $all_ok &&= ok( $pid2 = open(FH2, "-|", @cmd2), '    second' );
 }
 {
     no warnings 'once';
-    ok( $pid3 = open(FH3, "| $cmd3"), '    third'  );
+    $all_ok &&= ok( $pid3 = open(FH3, "| $cmd3"), '    third'  );
 }
-ok( $pid4 = open(FH4, "| $cmd4"), '    fourth' );
+$all_ok &&= ok( $pid4 = open(FH4, "| $cmd4"), '    fourth' );
 
-print "# pids were $pid1, $pid2, $pid3, $pid4\n";
+diag "# pids were $pid1, $pid2, $pid3, $pid4\n";
+
+if (! $all_ok) {
+    my $errno = 0 + $!;
+    fail("Could not start all expected processes, errno=$errno, \"$!\"");
+    watchdog(0);
+    done_testing;
+    exit 1;
+}
 
 my $killsig = 'HUP';
 $killsig = 1 unless $Config{sig_name} =~ /\bHUP\b/;
@@ -82,7 +93,7 @@ is( $from_pid1, 'first process',    'message from first process' );
 
 $kill_cnt = kill $killsig, $pid1;
 is( $kill_cnt, 1,   'first process killed' ) ||
-  print "# errno == $!\n";
+  diag "# errno == $!\n";
 
 # get message from second process and kill second process and reader process
 chomp($from_pid2 = scalar(<FH2>));
@@ -90,7 +101,7 @@ is( $from_pid2, 'second process',   'message from second process' );
 
 $kill_cnt = kill $killsig, $pid2, $pid3;
 is( $kill_cnt, 2,   'killing procs 2 & 3' ) ||
-  print "# errno == $!\n";
+  diag "# errno == $!\n";
 
 
 # send one expected line of text to child process and then wait for it
@@ -102,4 +113,4 @@ print "# waiting for process $pid4 to exit\n";
 $reap_pid = waitpid $pid4, 0;
 is( $reap_pid, $pid4, 'fourth process reaped' );
 
-watchdog(0);
+done_testing;
