@@ -15,6 +15,18 @@
 #include "perl.h"
 #include "XSUB.h"
 
+#ifndef EBCDIC
+#include <zos.h>
+#else
+
+int
+__setfdccsid(int to_fd,  U32 bits)
+{
+    return 0;
+}
+
+#endif
+
 void
 zos_copytags_fd(pTHX_ CV *cv)
 {
