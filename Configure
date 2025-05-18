@@ -4595,7 +4595,8 @@ echo "Checking for GNU cc in disguise and/or its version number..." >&4
 $cat >try.c <<EOM
 #include <stdio.h>
 int main() {
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+    /* xlclang sets __GNUC__ but does not set __VERSION__ */
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER) && !defined(__MVS__)
 #ifdef __VERSION__
 	printf("%s\n", __VERSION__);
 #else
