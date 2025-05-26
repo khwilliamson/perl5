@@ -18,17 +18,6 @@
 #     Mike Fulton
 #     Karl Williamson
 #
-# The z/OS 'cc' and 'ld' are insufficient for our needs, so we use c99 instead
-# c99 has compiler options specified via standard Unix-style options, but some
-# options need to be specified using -Wc,<compiler-option> or -Wl,<link-option>
-me=$0
-case "$cc" in
-'') cc='xlclang' ;;
-esac
-case "$ld" in
-'') ld='xlclang' ;;
-esac
-
 # Prepend your favorites with Configure -Dccflags=your_favorites
 
 # This overrides the name the compiler was called with.  'ext' is required for
@@ -46,17 +35,21 @@ def_os390_defs="$def_os390_defs -D_ALL_SOURCE";
 # For 64-bit addressing mode, the standard linkage works well
 
 case "$use64bitall" in
-'')
-  def_os390_cflags="$def_os390_cflags -qxplink"
-  def_os390_cccdlflags="-qxplink"
-  def_os390_ldflags="-qxplink"
-# defines a BSD-like socket interface for the function prototypes and structures involved (not required with 64-bit)
-  def_os390_defs="$def_os390_defs -D_OE_SOCKETS";
+'') echo "32-bit compilation not currently supported" >&4
+    # Though it could easily be added.  IBM says no one uses it anymore.
+    exit 1;
   ;;
 *)
-  def_os390_cflags="$def_os390_cflags -Wc,lp64"
-  def_os390_cccdlflags="$def_os390_cflags -Wl,lp64"
-  def_os390_ldflags="-Wl,lp64"
+  # Use xlclang for 64-bit
+  case "$cc" in
+  '') cc='clang' ;;
+  esac
+  case "$ld" in
+  '') ld='clang' ;;
+  esac
+  def_os390_cflags="-m64"
+  def_os390_cccdlflags="$def_os390_cflags"
+  def_os390_ldflags="-m64"
 esac
 
 arch_main_objs=""
@@ -68,16 +61,14 @@ test -h os390.c || ln -s os390/os390.c os390.c
 myfirstchar=$(od -A n -N 1 -t x $me | xargs | tr [:lower:] [:upper:] | tr -d 0)
 if [ "${myfirstchar}" = "23" ]; then # 23 is '#' in ASCII
   unset ebcdic
-  def_os390_cflags="$def_os390_cflags -qascii"
+  def_os390_cflags="$def_os390_cflags -fzos-le-char-mode=ascii"
 else
   ebcdic=true
+  def_os390_cflags="$def_os390_cflags -fzos-le-char-mode=ebcdic"
 fi
 
 # Export all externally defined functions and variables in the compilation
 # unit so that a DLL application can use them.
-def_os390_cflags="$def_os390_cflags -qexportall";
-def_os390_cccdlflags="$def_os390_cccdlflags -qexportall"
-def_os390_cccdlflags="$def_os390_cccdlflags -Wl,dll"
 
 # 3296= #include file not found;
 # 4108= The use of keyword &1 is non-portable
@@ -86,7 +77,6 @@ def_os390_cccdlflags="$def_os390_cccdlflags -Wl,dll"
 #          INFORMATIONAL CCN4108 ./proto.h:4534 The use of keyword '__attribute__' is non-portable.
 # 3159= Bit field type specified for &1 is not valid. Type &2 assumed.
 #       We do not care about this warning - the bit field is 1 bit and is being specified on something smaller than an int
-def_os390_cflags="$def_os390_cflags -qfloat=ieee"
 
 def_os390_defs="$def_os390_defs -DMAXSIG=39 -DNSIG=39";     # maximum signal number; not furnished by IBM
 def_os390_defs="$def_os390_defs -DOEMVS";   # is used in place of #ifdef __MVS__
@@ -96,15 +86,18 @@ def_os390_defs="$def_os390_defs -DYYDYNAMIC";
 
 # LC_MESSAGES only affects the yes/no strings in langinfo; not the things we
 # expect it to
-#def_os390_defs="$def_os390_defs -DNO_LOCALE_MESSAGES"
+def_os390_defs="$def_os390_defs -DNO_LOCALE_MESSAGES"
 
 # Set up feature test macros required for features available on supported z/OS systems
-def_os390_defs="$def_os390_defs -D_OPEN_THREADS=3 -D_UNIX03_SOURCE=1 -D_AE_BIMODAL=1 -D_XOPEN_SOURCE_EXTENDED -D_ALL_SOURCE -D_ENHANCED_ASCII_EXT=0xFFFFFFFF -D_OPEN_SYS_FILE_EXT=1 -D_OPEN_SYS_SOCK_IPV6 -D_XOPEN_SOURCE=600 -D_XOPEN_SOURCE_EXTENDED -D_EXT"
+def_os390_defs="$def_os390_defs -D_OPEN_THREADS=3 -D_UNIX03_SOURCE=1 -D_AE_BIMODAL=1 -D_XOPEN_SOURCE_EXTENDED -D_ALL_SOURCE -D_ENHANCED_ASCII_EXT=0xFFFFFFFF -D_OPEN_SYS_FILE_EXT=1 -D_OPEN_SYS_SOCK_IPV6 -D_XOPEN_SOURCE=600 -D_XOPEN_SOURCE_EXTENDED"
+
+# Find perl base on PATH environment variable rather than hardcoding install location
+startperl='#!/bin/env perl'
 
 # Combine -D with cflags
 case "$ccflags" in
 '') ccflags="$def_os390_cflags $def_os390_defs"  ;;
-*)  ccflags="$ccflags $def_os390_cflags $def_os390_defs" ;;
+*)  ccflags="$ccflags $cppflags $def_os390_cflags $def_os390_defs" ;;
 esac
 
 # Turning on optimization causes perl to not even compile from miniperl.  You
@@ -116,7 +109,7 @@ esac
 # To link via definition side decks we need the dll option
 # You can override this with Configure -Ucccdlflags or somesuch.
 case "$cccdlflags" in
-'') cccdlflags="$def_os390_cccdlflags -Wl,dll";;
+'') cccdlflags="$def_os390_cccdlflags -shared";;
 esac
 
 case "$so" in
@@ -299,8 +292,6 @@ fi
 d_gethostbyaddr_r='undef'
 d_gethostbyname_r='undef'
 d_gethostent_r='undef'
-
-#d_nl_langinfo='undef'
 
 # nan() used to not work as expected: nan("") or nan("0") returned zero, not a
 # nan.  This may have been a C89 issue.
