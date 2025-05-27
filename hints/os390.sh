@@ -19,6 +19,8 @@
 #     Karl Williamson
 #     Igor Todorovsky
 #
+    #export ZOPEN_CFLAGS="-mnocsect -fno-short-enums -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -mzos-target=zosv2r4"
+    #export ZOPEN_CXXFLAGS="-fzos-le-char-mode=ascii -mnocsect -fno-short-enums -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -m64 -mzos-target=zosv2r4"
 # Prepend your favorites with Configure -Dccflags=your_favorites
 
 # This overrides the name the compiler was called with.  'ext' is required for
@@ -53,7 +55,7 @@ case "$use64bitall" in
   esac
   def_os390_cflags="$def_os390_cflags -m64"
   def_os390_cccdlflags="$def_os390_cflags $def_os390_cflags"
-  def_os390_ldflags="-m64"
+  def_os390_ldflags="-Wl,-bedit=no -m64"
 esac
 
 arch_main_objs=""
@@ -69,6 +71,7 @@ if [ "${myfirstchar}" = "23" ]; then # 23 is '#' in ASCII
 else
   ebcdic=true
   def_os390_cflags="$def_os390_cflags -fzos-le-char-mode=ebcdic"
+  def_os390_cflags="$def_os390_cflags -fexec-charset=IBM-1047"
 fi
 
 # Export all externally defined functions and variables in the compilation
@@ -82,7 +85,7 @@ fi
 # 3159= Bit field type specified for &1 is not valid. Type &2 assumed.
 #       We do not care about this warning - the bit field is 1 bit and is being specified on something smaller than an int
 
-def_os390_defs="$def_os390_defs -DMAXSIG=39 -DNSIG=39";     # maximum signal number; not furnished by IBM
+def_os390_defs="$def_os390_defs -DMAXSIG=42 -DNSIG=42";     # maximum signal number; not furnished by IBM
 def_os390_defs="$def_os390_defs -DOEMVS";   # is used in place of #ifdef __MVS__
 
 # ensure that the OS/390 yacc generated parser is reentrant.
