@@ -34,6 +34,8 @@ else {
 	process_file($file);
     }
 }
+
+#print STDERR __FILE__, ": ", __LINE__, ": ", join "\n", keys %err, "\n";
 write_errno_pm();
 unlink "errno.c" if -f "errno.c";
 close OUT or die "Error closing Errno.tmp: $!";
@@ -57,22 +59,23 @@ sub process_file {
 	unless(open(FH," LIBRARY/EXTRACT=ERRNO/OUTPUT=SYS\$OUTPUT $file |")) {
             warn "Cannot open '$file'";
             return;
-	}     
+	}
     } elsif ($Config{gccversion} ne '' && $^O ne 'darwin' ) {
 	# With the -dM option, gcc outputs every #define it finds
 	unless(open(FH,"$Config{cc} -E -dM $Config{cppflags} $file |")) {
             warn "Cannot open '$file'";
             return;
-	}     
+	}
     } else {
 	unless(open(FH, '<', $file)) {
 	    # This file could be a temporary file created by cppstdin
 	    # so only warn under -w, and return
+            #print STDERR __FILE__, ": ", __LINE__, ": $file ", $!, "\n";
             warn "Cannot open '$file'" if $^W;
             return;
 	}
     }
-    
+
     my $pat;
     if ($IsMSWin32) {
 	$pat = '^\s*#\s*define\s+((?:WSA)?E\w+)\s+';
@@ -80,9 +83,11 @@ sub process_file {
     else {
 	$pat = '^\s*#\s*define\s+(E\w+)\s+';
     }
+    #print STDERR __FILE__, ": ", __LINE__, ": $pat\n ";
     while(<FH>) {
 	$err{$1} = 1
 	    if /$pat/;
+    #print STDERR __FILE__, ": ", __LINE__, ": $. $_, $1\n";
     }
 
     close(FH);
@@ -103,6 +108,7 @@ sub default_cpp {
 		    and -x $upup_cppstdin);
 	$cppstdin = $upup_cppstdin if $cppstdin_is_wrapper;
     }
+    #print STDERR __FILE__, ": ", __LINE__, ": $cppstdin $Config{cppflags} $Config{cppminus}\n";
     return "$cppstdin $Config{cppflags} $Config{cppminus}";
 }
 
@@ -136,7 +142,7 @@ sub get_files {
 	     push(@file, $1);
 	}
     } elsif ($^O eq 'linux' &&
-	      $Config{gccversion} ne '' && 
+	      $Config{gccversion} ne '' &&
 	      $Config{gccversion} !~ /intel/i &&
 	      # might be using, say, Intel's icc
 	      $linux_errno_h
@@ -188,7 +194,7 @@ sub get_files {
     return uniq(@file);
 }
 
-# 
+#
 #
 sub uniq
 {
@@ -217,9 +223,10 @@ sub write_errno_pm {
     if ($IsMSWin32) {
 	print CPPI qq[#include "../../win32/include/sys/errno2.h"\n];
     }
- 
+
     foreach $err (keys %err) {
 	print CPPI '"',$err,'" [[',$err,']]',"\n";
+        #print STDERR __FILE__, ": ", __LINE__, ": ", '"',$err,'" [[',$err,']]',"\n";
     }
 
     close(CPPI);
@@ -247,15 +254,27 @@ sub write_errno_pm {
 		die "Cannot run '$cpp errno.c'";
 	} else {
 	    my $cpp = default_cpp() . $inhibit_linemarkers;
-	    open(CPPO,"$cpp < errno.c |")
-		or die "Cannot exec $cpp";
+            $cpp =~ s/ $Config{cppminus} \s* $ //x;
+            #print STDERR __FILE__, ": ", __LINE__, ": $cpp\n";
+	    #open(CPPO,"$cpp < errno.c |")
+	    system "$cpp errno.c > errno.i" ;#or die "Cannot system $cpp";
+	    open(CPPO,"<", 'errno.i') or die "Cannot open errno.i";
+            unlink 'errno.i';
 	}
 
 	%err = ();
 
 	while(<CPPO>) {
 	    my($name,$expr);
+            #print STDERR __FILE__, ": ", __LINE__, ": $. length=", length $_, "\n";
+            #for my $i (0 ..20) {
+            #    last unless $i < length $_;
+            #    print STDERR sprintf " %02x", ord substr($_, $i, 1);
+            #}
+            #print STDERR "\n";
+            #    print STDERR $_;
 	    next unless ($name, $expr) = /"(.*?)"\s*\[\s*\[\s*(.*?)\s*\]\s*\]/;
+            #print STDERR __FILE__, ": ", __LINE__, ": $name, $expr\n" ;
 	    next if $name eq $expr;
 	    $expr =~ s/\(?\(\s*[a-z_]\w*\s*\)\(?([^\)]+)\)?\)?/$1/i; # ((type)0xcafebabe) et alia
 	    $expr =~ s/\b((?:0x)?[0-9a-f]+)[LU]+\b/$1/gi; # 2147483647L et alia
@@ -349,7 +368,7 @@ our %EXPORT_TAGS = (
     POSIX => [qw(
 ESQ
 
-    my $k = join(" ", grep { exists $err{$_} } 
+    my $k = join(" ", grep { exists $err{$_} }
 	qw(E2BIG EACCES EADDRINUSE EADDRNOTAVAIL EAFNOSUPPORT
 	EAGAIN EALREADY EBADF EBUSY ECHILD ECONNABORTED
 	ECONNREFUSED ECONNRESET EDEADLK EDESTADDRREQ EDOM EDQUOT
@@ -441,8 +460,8 @@ non-zero value only if C<$!> is set to that value. For example:
             warn "Get a wife!\n";
         } else {
             warn "This path is barred: $!";
-        } 
-    } 
+        }
+    }
 
 If a specified constant C<EFOO> does not exist on the system, C<$!{EFOO}>
 returns C<"">.  You may use C<exists $!{EFOO}> to check whether the
