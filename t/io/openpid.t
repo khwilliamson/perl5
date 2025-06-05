@@ -54,7 +54,7 @@ else {
 $cmd3 = qq/$perl -e "print <>;"/; # hangs waiting for end of STDIN
 $cmd4 = qq/$perl -e "print scalar <>;"/;
 
-warn "#@cmd1\n#@cmd2\n#$cmd3\n#$cmd4\n";
+diag "#@cmd1\n#@cmd2\n#$cmd3\n#$cmd4\n";
 
 # start the processes
 my $all_ok = 1;
