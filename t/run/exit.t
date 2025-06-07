@@ -12,7 +12,10 @@ BEGIN {
 sub run {
     my($code) = shift;
     $code = "\"" . $code . "\"" if $^O eq 'VMS'; #VMS needs quotes for this.
-    return system($^X, "-e", $code);
+    print STDERR __FILE__, ": ", __LINE__, ": $^X $code\n";
+    my $retval = system($^X, "-e", $code);
+    print STDERR __FILE__, ": ", __LINE__, ": $? $retval\n";
+    return $retval;
 }
 
 BEGIN {
@@ -45,7 +48,7 @@ plan(tests => $numtests);
 my $native_success = 0;
    $native_success = 1 if $^O eq 'VMS';
 
-my $exit, $exit_arg;
+my ($exit, $exit_arg);
 
 $exit = run('exit');
 is( $exit >> 8, 0,              'Normal exit' );
