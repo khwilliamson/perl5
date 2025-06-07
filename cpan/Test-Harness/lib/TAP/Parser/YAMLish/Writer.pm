@@ -25,6 +25,9 @@ $UNPRINTABLE[ord "\cK"] = 'v';
 $UNPRINTABLE[ord "\f"] = 'f';
 $UNPRINTABLE[ord "\r"] = 'r';
 $UNPRINTABLE[ord "\e"] = 'e';
+use Data::Dumper;
+
+print STDERR __FILE__, ": ", __LINE__, ": ", Dumper \@UNPRINTABLE;
 
 # new() implementation supplied by TAP::Object
 
