@@ -383,7 +383,7 @@ like($out, qr/\# 4\d\d: \s+ \$l->concise\(\$level\);/,
      "src-line rendering works");
 
 $out = runperl ( switches => ["-MStorable", "-MO=Concise,-stash=Storable,-src"],
-		 prog => '1', stderr => 1 );
+		 prog => '1');
 
 like($out, qr/FUNC: \*Storable::BIN_MAJOR/,
      "stash rendering has constant sub: Storable::BIN_MAJOR");
