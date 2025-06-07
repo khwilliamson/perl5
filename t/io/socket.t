@@ -330,11 +330,14 @@ SKIP: {
     my $sock;
     socket($sock, PF_INET, SOCK_STREAM, $tcp) or BAIL_OUT "socket: $!";
 
+    use Data::Dumper;
     my $ttl = 7;
     my $integer_only_ttl = 0 + $ttl;
+    print STDERR __FILE__, ": ", __LINE__, ": ", Dumper $sock, $IPPROTO_IP, $IP_TTL, $integer_only_ttl;
     ok(setsockopt($sock, $IPPROTO_IP, $IP_TTL, $integer_only_ttl),
        'setsockopt with an integer-only OPTVAL');
     my $set_ttl = getsockopt($sock, $IPPROTO_IP, $IP_TTL);
+    print STDERR __FILE__, ": ", __LINE__, ": ", Dumper $set_ttl, $sock, $IPPROTO_IP, $IP_TTL;
     is(unpack('i', $set_ttl // ''), $ttl, 'TTL set to desired value');
 
     my $also_string_ttl = $ttl;
