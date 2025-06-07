@@ -269,6 +269,8 @@ for my $test (@SCHEDULE) {
         my $parsed = eval { $yr->read($reader) };
         ok !$@, "$name: no error" or diag "$@";
 
+        use Data::Dumper;
+        print STDERR __FILE__, ": ", __LINE__, ": ",  Dumper $parsed, $data;
         is_deeply $parsed, $data, "$name: Reparse OK";
     }
 }
