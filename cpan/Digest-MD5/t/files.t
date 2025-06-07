@@ -6,16 +6,16 @@ use Digest::MD5 qw(md5 md5_hex md5_base64);
 print "1..3\n";
 
 # To update the EBCDIC section even on a Latin 1 platform,
-# run this script with $ENV{EBCDIC_MD5SUM} set to a true value.
-# (You'll need to have Perl 5.7.3 or later, to have the Encode installed.)
-# (And remember that under the Perl core distribution you should
-#  also have the $ENV{PERL_CORE} set to a true value.)
+# run this script (from the module's directory) with $ENV{EBCDIC_MD5SUM} set
+# to a true value.  (You'll need to have Perl 5.7.3 or later, to have the
+# Encode installed.) (And remember that under the Perl core distribution you
+# should also have the $ENV{PERL_CORE} set to a true value.)
 
 my $EXPECT;
 if (ord "A" == 193) { # EBCDIC
     $EXPECT = <<EOT;
 3cacea57d85e99a496419b55cf0b961b  README
-cc51934d333c733ed3555aa23ba39a6e  MD5.xs
+d1028e01ebf4b27d46554cab5fdb8117  MD5.xs
 276da0aa4e9a08b7fe09430c9c5690aa  rfc1321.txt
 EOT
 } else {
