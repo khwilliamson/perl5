@@ -371,7 +371,7 @@ like($out, qr/Config::AUTOLOAD exists in stash, but has no START/,
 
 # test -stash and -src rendering
 $out = runperl ( switches => ["-MO=-qq,Concise,-stash=B::Concise,-src"],
-		 prog => '-e 1', stderr => 1 );
+		 prog => '1', stderr => 1 );
 
 like($out, qr/FUNC: \*B::Concise::concise_cv_obj/,
      "stash rendering of B::Concise includes Concise::concise_cv_obj");
@@ -383,7 +383,7 @@ like($out, qr/\# 4\d\d: \s+ \$l->concise\(\$level\);/,
      "src-line rendering works");
 
 $out = runperl ( switches => ["-MStorable", "-MO=Concise,-stash=Storable,-src"],
-		 prog => '-e 1', stderr => 1 );
+		 prog => '1', stderr => 1 );
 
 like($out, qr/FUNC: \*Storable::BIN_MAJOR/,
      "stash rendering has constant sub: Storable::BIN_MAJOR");
@@ -392,13 +392,13 @@ like($out, qr/BIN_MAJOR is a constant sub, optimized to a IV/,
      "stash rendering identifies it as constant");
 
 $out = runperl ( switches => ["-MO=Concise,-stash=ExtUtils::Mksymlists,-src,-exec"],
-		 prog => '-e 1', stderr => 1 );
+		 prog => '1', stderr => 1 );
 
 like($out, qr/FUNC: \*ExtUtils::Mksymlists::_write_vms/,
      "stash rendering loads package as needed");
 
 $out = runperl ( switches => ["-MO=Concise,-stash=Data::Dumper,-src,-exec"],
-		 prog => '-e 1', stderr => 1 );
+		 prog => '1', stderr => 1 );
 
 SKIP: {
     skip "Data::Dumper is statically linked", 1
