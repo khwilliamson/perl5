@@ -102,7 +102,7 @@ sub other {
     }
 }
 
-{
+SKIP: {
     # (perl #133314) directory handle leak
     # We open three handles here because the file processing opened:
     #  - the original file
@@ -114,6 +114,11 @@ sub other {
     # available, which I believe is the case for the Win32 CRTs too.
     # If this turns out not to be the case this test will need to skip on
     # such platforms or only run on a small set of known-good platforms.
+
+    # khw checked by hand (on June 6, 2025) the failure that led to this test,
+    # https://github.com/perl/perl5/issues/16602, and it did not fail.
+    skip "z/OS doesn't necessarily allocate fd's as expected", 1
+                                                            if $^O eq 'os390';
     my $tfile = mkfiles(1);
     open my $f, "<", $tfile
       or die "Cannot open temp: $!";
