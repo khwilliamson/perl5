@@ -124,7 +124,7 @@ sub _read_qq {
     $str =~ s/\\"/"/gx;
     use re qw(Debug ALL);
     $str =~ s/ \\ ( [tartan\\favez] | x([0-9a-fA-F]{2}) ) 
-                 / (length($1) > 1) ? pack("H2", to_native($2))
+                 / (length($1) > 1) ? pack("H2", $2)
                                     : $UNESCAPES{$1} /gex;
     return $str;
 }
