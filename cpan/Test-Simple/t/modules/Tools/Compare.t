@@ -2,7 +2,7 @@ use Test2::Bundle::Extended -target => 'Test2::Tools::Compare';
 use Test2::Util::Table();
 
 BEGIN {
-    $ENV{TABLE_TERM_SIZE} = 80;
+    $ENV{TABLE_TERM_SIZE} = 250;
     $ENV{T2_AUTO_DUMP}    = 0;
     $ENV{T2_AUTO_DEPARSE} = 0;
 }
@@ -154,12 +154,12 @@ subtest is => sub {
 
             fail_table(
                 header => [qw/GOT OP CHECK/],
-                rows   => [["\N{U+1}\N{U+2}\N{U+3}", 'eq', "\N{U+1}\N{U+2}\N{U+4}"]],
+                rows   => [["\x{01}\x{02}\x{03}", 'eq', "\x{01}\x{02}\x{04}"]],
             );
 
             fail_table(
                 header => [qw/PATH GOT OP CHECK/],
-                rows   => [['$*', "\N{U+1}\N{U+2}\N{U+3}", 'eq', "\N{U+1}\N{U+2}\N{U+4}"]],
+                rows   => [['$*', "\x{01}\x{02}\x{03}", 'eq', "\x{01}\x{02}\x{04}"]],
             );
 
             event Ok => sub {
