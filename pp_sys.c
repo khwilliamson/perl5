@@ -2916,7 +2916,7 @@ PP_wrapped(pp_ssockopt,(PL_op->op_type == OP_GSOCKOPT) ? 3 : 4 , 0)
     const int optype = PL_op->op_type;
     SV * const sv = (optype == OP_GSOCKOPT) ? sv_2mortal(newSV(PERL_GETSOCKOPT_SIZE+1)) : POPs;
     const unsigned int optname = (unsigned int) POPi;
-    const unsigned int lvl = (unsigned int) POPi;
+    unsigned int lvl = (unsigned int) POPi;
     GV * const gv = MUTABLE_GV(POPs);
     IO * const io = GvIOn(gv);
     int fd;
@@ -2951,7 +2951,9 @@ PP_wrapped(pp_ssockopt,(PL_op->op_type == OP_GSOCKOPT) ? 3 : 4 , 0)
             const char *buf;
             int aint;
             SvGETMAGIC(sv);
-            if (SvPOK(sv) && !SvIsBOOL(sv)) { /* sv is originally a string */
+            DEBUG_U(PerlIO_printf(Perl_debug_log, "%s: %ld:", __FILE__, (long) __LINE__));
+            if (DEBUG_U_TEST) sv_dump(sv);
+            if (! SvIOK(sv) && SvPOK(sv) && !SvIsBOOL(sv)) { /* sv is originally a string */
                 STRLEN l;
                 buf = SvPVbyte_nomg(sv, l);
                 len = l;
@@ -2961,8 +2963,13 @@ PP_wrapped(pp_ssockopt,(PL_op->op_type == OP_GSOCKOPT) ? 3 : 4 , 0)
                 buf = (const char *) &aint;
                 len = sizeof(int);
             }
-            if (PerlSock_setsockopt(fd, lvl, optname, buf, len) < 0)
+            if (lvl ==0) lvl=65535;
+            DEBUG_U(PerlIO_printf(Perl_debug_log, "%s: %ld: lvl=%d buf=%s, len=%ld\n", __FILE__, (long) __LINE__, lvl,  byte_dump_string_((U8 *) buf, len,1), (long) len));
+            errno = 0;
+            if (PerlSock_setsockopt(fd, lvl, optname, buf, len) < 0) {
                 goto nuts2;
+                DEBUG_U(PerlIO_printf(Perl_debug_log, "%s: %ld: errno=%ld\n", __FILE__, (long) __LINE__, (long) errno));
+            }
             PUSHs(&PL_sv_yes);
         }
         break;
