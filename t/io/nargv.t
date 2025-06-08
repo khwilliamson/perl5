@@ -117,8 +117,12 @@ SKIP: {
 
     # khw checked by hand (on June 6, 2025) the failure that led to this test,
     # https://github.com/perl/perl5/issues/16602, and it did not fail.
-    skip "z/OS doesn't necessarily allocate fd's as expected", 1
-                                                            if $^O eq 'os390';
+    if ($^O eq 'os390') {
+        print "ok 7  # skip z/OS doesn't necessarily allocate fd's as",
+              " expected\n";
+        last SKIP;
+    }
+
     my $tfile = mkfiles(1);
     open my $f, "<", $tfile
       or die "Cannot open temp: $!";
