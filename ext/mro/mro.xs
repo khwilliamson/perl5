@@ -11,7 +11,7 @@ static const struct mro_alg c3_alg =
     {S_mro_get_linear_isa_c3, "c3", 2, 0, 0};
 
 /*
-=for apidoc mro_get_linear_isa_c3
+=for apidoc A|AV *|mro_get_linear_isa_c3|HV * stash | U32 level
 
 Returns the C3 linearization of C<@ISA>
 the given stash.  The return value is a read-only AV*
