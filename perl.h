@@ -2292,21 +2292,6 @@ Localize C<$_>.  See L<perlguts/Localizing changes>.
 #undef UV
 #endif
 
-/* This used to be conditionally defined based on whether we had a sprintf()
- * that correctly returns the string length (as required by C89), but we no
- * longer need that. XS modules can (and do) use this name, so it must remain
- * a part of the API that's visible to modules.
-
-=for apidoc_section $string
-=for apidoc ATmD|int|my_sprintf|NN char *buffer|NN const char *pat|...
-
-Do NOT use this due to the possibility of overflowing C<buffer>.  Instead use
-my_snprintf()
-
-=cut
-*/
-#define my_sprintf sprintf
-
 /*
  * If we have v?snprintf() and the C99 variadic macros, we can just
  * use just the v?snprintf().  It is nice to try to trap the buffer

@@ -2149,6 +2149,9 @@ CTdp	|int	|my_socketpair	|int family				\
 				|int type				\
 				|int protocol				\
 				|int fd[2]
+ADFTdmp |int	|my_sprintf	|NN char *buffer			\
+				|NN const char *pat			\
+				|...
 mp	|I32	|my_stat
 Xp	|I32	|my_stat_flags	|NULLOK const U32 flags
 p	|const char *|my_strerror					\

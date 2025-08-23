@@ -193,6 +193,33 @@ Perl_utf8_to_uvchr(pTHX_ const U8 *s, STRLEN *retlen)
     return utf8_to_uvchr_buf(s, s + UTF8_CHK_SKIP(s), retlen);
 }
 
+/* This used to be conditionally defined based on whether we had a sprintf()
+ * that correctly returns the string length (as required by C89), but we no
+ * longer need that. XS modules can (and do) use this name, so it must remain
+ * a part of the API that's visible to modules.
+
+=for apidoc_section $string
+=for apidoc my_sprintf
+
+Do NOT use this due to the possibility of overflowing C<buffer>.  Instead use
+L</my_snprintf>.
+
+=cut
+
+As a macro, this was marked as deprecated since before v5.32, but as a function
+where a notice will actually appear if you use it, it is v5.44
+*/
+
+int
+Perl_my_sprintf(char *buffer, const char *pat, ...)
+{
+    va_list ap;
+    va_start(ap, pat);
+    int result = my_vsnprintf(buffer, MEM_SIZE_MAX, pat, ap);
+    va_end(ap);
+    return result;
+}
+
 GCC_DIAG_RESTORE
 
 #endif /* NO_MATHOMS */

@@ -2694,6 +2694,10 @@ PERL_CALLCONV int
 Perl_my_socketpair(int family, int type, int protocol, int fd[2]);
 #define PERL_ARGS_ASSERT_MY_SOCKETPAIR
 
+/* PERL_CALLCONV int
+Perl_my_sprintf(char *buffer, const char *pat, ...)
+        __attribute__deprecated__; */
+
 /* PERL_CALLCONV I32
 Perl_my_stat(pTHX); */
 
