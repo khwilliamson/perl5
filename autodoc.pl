@@ -539,6 +539,12 @@ sub check_and_add_proto_defn {
     $flags .= "m" if $flags =~ /M/;
     $flags .= "U" if $flags =~ /@/;     # No usage output for @arrays
 
+    if ($flags =~ tr/mD// == 2 && $flags !~ /n/) {
+        warn "To deprecate macro '$element', convert it to a function and"
+           . " place it in mathoms.c.  Be sure to include instructions for"
+           . " curing the problem.  (pod found in $file, line $line_num)";
+    }
+
     my @munged_args= $args_ref->@*;
     s/\b(?:NN|NULLOK)\b\s+//g for @munged_args;
 
