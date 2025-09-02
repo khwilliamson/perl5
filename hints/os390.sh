@@ -17,15 +17,19 @@
 # z/OS 2.4 Support added thanks to:
 #     Mike Fulton
 #     Karl Williamson
+#     Igor Todorovsky
 #
 # Prepend your favorites with Configure -Dccflags=your_favorites
 
 # This overrides the name the compiler was called with.  'ext' is required for
 # "unicode literals" to be enabled
-def_os390_cflags='-std=c99 -D_EXT';
+def_os390_cflags='-std=c99 -D_EXT -fvisibility=default -D_POSIX_C_SOURCE=200809L -D_XPLATFORM_SOURCE=1';
 
 # For #ifdefs in code
 def_os390_defs="-DOS390 -DZOS";
+
+def_os390_defs="$def_os390_defs -Duserelocatableinc -Duse64bitall"
+use64bitall=define
 
 # Turn on POSIX compatibility modes
 #  https://www.ibm.com/support/knowledgecenter/SSLTBW_2.4.0/com.ibm.zos.v2r4.bpxbd00/ftms.htm
@@ -40,15 +44,15 @@ case "$use64bitall" in
     exit 1;
   ;;
 *)
-  # Use xlclang for 64-bit
+  # Use clang for 64-bit
   case "$cc" in
   '') cc='clang' ;;
   esac
   case "$ld" in
   '') ld='clang' ;;
   esac
-  def_os390_cflags="-m64"
-  def_os390_cccdlflags="$def_os390_cflags"
+  def_os390_cflags="$def_os390_cflags -m64"
+  def_os390_cccdlflags="$def_os390_cflags $def_os390_cflags"
   def_os390_ldflags="-m64"
 esac
 
