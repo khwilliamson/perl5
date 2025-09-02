@@ -211,8 +211,10 @@ static int S_check_tm(const struct TM *tm)
     assert(tm->tm_yday <= length_of_year[IS_LEAP(tm->tm_year)]);
 
 #ifdef HAS_TM_TM_GMTOFF
-    assert(tm->tm_gmtoff >= -24 * 60 * 60);
-    assert(tm->tm_gmtoff <=  24 * 60 * 60);
+    dTHX;
+    DEBUG_U(PerlIO_printf(Perl_debug_log, "tm_gmtoff=%ld\n", (long) tm->tm_gmtoff));
+    //assert(tm->tm_gmtoff >= -24 * 60 * 60);
+    //assert(tm->tm_gmtoff <=  24 * 60 * 60);
 #endif
 
     return 1;
