@@ -54,7 +54,7 @@ else {
 $cmd3 = qq/$perl -e "print <>;"/; # hangs waiting for end of STDIN
 $cmd4 = qq/$perl -e "print scalar <>;"/;
 
-diag "#@cmd1\n#@cmd2\n#$cmd3\n#$cmd4\n";
+#diag "#@cmd1\n#@cmd2\n#$cmd3\n#$cmd4\n";
 
 # start the processes
 my $all_ok = 1;
@@ -74,7 +74,7 @@ else {
 }
 $all_ok &&= ok( $pid4 = open(FH4, "| $cmd4"), '    fourth' );
 
-diag "# pids were $pid1, $pid2, $pid3, $pid4\n";
+#diag "# pids were $pid1, $pid2, $pid3, $pid4\n";
 
 if (! $all_ok) {
     my $errno = 0 + $!;
@@ -93,7 +93,7 @@ is( $from_pid1, 'first process',    'message from first process' );
 
 $kill_cnt = kill $killsig, $pid1;
 is( $kill_cnt, 1,   'first process killed' ) ||
-  diag "# errno == $!\n";
+  #diag "# errno == $!\n";
 
 # get message from second process and kill second process and reader process
 chomp($from_pid2 = scalar(<FH2>));
@@ -101,7 +101,7 @@ is( $from_pid2, 'second process',   'message from second process' );
 
 $kill_cnt = kill $killsig, $pid2, $pid3;
 is( $kill_cnt, 2,   'killing procs 2 & 3' ) ||
-  diag "# errno == $!\n";
+  #diag "# errno == $!\n";
 
 
 # send one expected line of text to child process and then wait for it
