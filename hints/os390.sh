@@ -233,6 +233,9 @@ esac
 # can find the shmat() prototype in <sys/shm.h> and various
 # other things.  Unfortunately, cppflags occurs too late to be of
 # value external to the script.  This may need to be revisited
+
+# This is to get around a bug in Configure, GH #23682
+d_shmatprototype='define'
 #
 # khw believes some of this is obsolete.  DOLLARINNAMES allows '$' in variable
 # names, for whatever reason
