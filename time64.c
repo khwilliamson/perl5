@@ -213,8 +213,8 @@ static int S_check_tm(const struct TM *tm)
 #ifdef HAS_TM_TM_GMTOFF
     dTHX;
     DEBUG_U(PerlIO_printf(Perl_debug_log, "tm_gmtoff=%ld\n", (long) tm->tm_gmtoff));
-    //assert(tm->tm_gmtoff >= -24 * 60 * 60);
-    //assert(tm->tm_gmtoff <=  24 * 60 * 60);
+    assert(tm->tm_gmtoff >= -24 * 60 * 60);
+    assert(tm->tm_gmtoff <=  24 * 60 * 60);
 #endif
 
     return 1;
