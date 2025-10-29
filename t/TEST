@@ -454,7 +454,7 @@ sub _tests_from_manifest {
 					      | podlators/   # Relies on P:Simple
 					      | Pod-Simple/
 					      | Pod-Checker/
-					      | IPC-Cmd/    # No obvious \x constants, but get this in several places:
+					      #| IPC-Cmd/    # No obvious \x constants, but get this in several places:
 							    # Negative length at lib/IO/Handle.pm line 446.
 					      | Encode/	    # defer, Too much output;
 					    )
