@@ -18,73 +18,98 @@
 #     Mike Fulton
 #     Karl Williamson
 #     Igor Todorovsky
-#
-# Prepend your favorites with Configure -Dccflags=your_favorites
 
-# This overrides the name the compiler was called with.  'ext' is required for
-# "unicode literals" to be enabled
-def_os390_cflags='-std=c99 -D_EXT -fvisibility=default -D_POSIX_C_SOURCE=200809L -D_XPLATFORM_SOURCE=1';
+me=$0
 
-# For #ifdefs in code
-def_os390_defs="-DOS390 -DZOS";
+# Prepend your favorites with Configure -Aprepend:ccflags="your favorites"
+#                                       -Aprepend:cppflags="your favourites"
+# No others get prepended, so for example, passing in a non-empty ldflags
+# overrides anything set here.
 
-def_os390_defs="$def_os390_defs -Duserelocatableinc -Duse64bitall"
-use64bitall=define
+archobjs="os390.o"
+
+# This doesn't change the value in Configure, but for now is good enough for
+# the rest of this file.  The correct value would be
+#  os390_ver=$(uname -Iv).$(uname -Ir)"
+os390_ver=$(uname -Iv)
+
+def_os390_cccdlflags=""
+def_os390_ccflags=""
+def_os390_cppflags=""
+def_os390_defs=""
+def_os390_ldflags=""
+
+# We now require C99
+def_os390_ccflags="$def_os390_ccflags -std=c99"
+
+# Certain extensions to z/OS library functions and extra library functions are
+# available only when this is defined.  For example, to enable "unicode literals"
+def_os390_ccflags="$def_os390_ccflags -D_EXT=1"
+
+# Export all externally defined functions and variables in the compilation
+# unit so that a DLL application can use them. 'default' really should be named
+# 'public'
+def_os390_ccflags="$def_os390_ccflags -fvisibility=default"
+
+# Use the behaviors for various library functions specified by POSIX 2008.
+def_os390_ccflags="$def_os390_ccflags -D_POSIX_C_SOURCE=200809L"
+
+# Various values that we need are not available unless this is set
+def_os390_ccflags="$def_os390_ccflags -D_XPLATFORM_SOURCE=1";
+
+# For #ifdefs in code to mark this as z/OS.  OEMVS is a synonym for __MVS__
+def_os390_defs="$def_os390_defs -DOS390 -DZOS -DOEMVS";
 
 # Turn on POSIX compatibility modes
 #  https://www.ibm.com/support/knowledgecenter/SSLTBW_2.4.0/com.ibm.zos.v2r4.bpxbd00/ftms.htm
 def_os390_defs="$def_os390_defs -D_ALL_SOURCE";
 
-# For 31-bit addressing mode, we should use xplink (eXtended Performance linking)
-# For 64-bit addressing mode, the standard linkage works well
-
 case "$use64bitall" in
-'') echo "32-bit compilation not currently supported" >&4
+'undef') echo "32-bit compilation not currently supported" >&4
     # Though it could easily be added.  IBM says no such hardware now exists
     exit 1;
   ;;
 *)
-  # Use clang for 64-bit
   case "$cc" in
   '') cc='clang' ;;
   esac
   case "$ld" in
   '') ld='clang' ;;
   esac
-  def_os390_cflags="$def_os390_cflags -m64"
-  def_os390_cccdlflags="$def_os390_cflags $def_os390_cflags"
-  def_os390_ldflags="-Wl,-bedit=no -m64"
+  def_os390_ccflags="$def_os390_ccflags -m64"
+  def_os390_ldflags="$def_os390_ldflags -m64"
+  ;;
 esac
 
-arch_main_objs=""
-archobjs="os390.o"
-
-# Help make find os390.c
+# Help 'make' find os390.c
 test -h os390.c || ln -s os390/os390.c os390.c
 
 myfirstchar=$(od -A n -N 1 -t x $me | xargs | tr [:lower:] [:upper:] | tr -d 0)
 if [ "${myfirstchar}" = "23" ]; then # 23 is '#' in ASCII
   unset ebcdic
-  def_os390_cflags="$def_os390_cflags -fzos-le-char-mode=ascii -I /data/zopen/usr/local/include"
+  def_os390_ccflags="$def_os390_ccflags -fzos-le-char-mode=ascii"
+
+  # Enhanced ASCII support provides the ability to convert between ASCII and
+  # EBCDIC
+  def_os390_defs="$def_os390_defs -D_ENHANCED_ASCII_EXT=0xFFFFFFFF"
+
+  # Allows ability to have bimodal ASCII/EBCDIC support
+  def_os390_defs="$def_os390_defs -D_AE_BIMODAL=1"
+
+  # zopen wants @INC entries relocated at runtime based on the path to the perl
+  # binary
+  case "$userelocatableinc" in
+    '') userelocatableinc="define" ;;
+  esac
+
+  # Find perl base on PATH environment variable rather than hardcoding install
+  # location
+  startperl='#!/bin/env perl'
 else
   ebcdic=true
-  def_os390_cflags="$def_os390_cflags -fzos-le-char-mode=ebcdic"
-  def_os390_cflags="$def_os390_cflags -fexec-charset=IBM-1047"
+  def_os390_ccflags="$def_os390_ccflags -fzos-le-char-mode=ebcdic"
+  def_os390_ccflags="$def_os390_ccflags -fexec-charset=IBM-1047"
 fi
-
-# Export all externally defined functions and variables in the compilation
-# unit so that a DLL application can use them.
-
-# 3296= #include file not found;
-# 4108= The use of keyword &1 is non-portable
-#       We care about this because it
-#       actually means it didn't do what we expected. e.g.,
-#          INFORMATIONAL CCN4108 ./proto.h:4534 The use of keyword '__attribute__' is non-portable.
-# 3159= Bit field type specified for &1 is not valid. Type &2 assumed.
-#       We do not care about this warning - the bit field is 1 bit and is being specified on something smaller than an int
-
-def_os390_defs="$def_os390_defs -DMAXSIG=42 -DNSIG=42";     # maximum signal number; not furnished by IBM
-def_os390_defs="$def_os390_defs -DOEMVS";   # is used in place of #ifdef __MVS__
 
 # ensure that the OS/390 yacc generated parser is reentrant.
 def_os390_defs="$def_os390_defs -DYYDYNAMIC";
@@ -93,26 +118,49 @@ def_os390_defs="$def_os390_defs -DYYDYNAMIC";
 # expect it to
 def_os390_defs="$def_os390_defs -DNO_LOCALE_MESSAGES"
 
-# Set up feature test macros required for features available on supported z/OS systems
-def_os390_defs="$def_os390_defs -D_OPEN_THREADS=3 -D_UNIX03_SOURCE=1 -D_AE_BIMODAL=1 -D_XOPEN_SOURCE_EXTENDED -D_ALL_SOURCE -D_ENHANCED_ASCII_EXT=0xFFFFFFFF -D_OPEN_SYS_FILE_EXT=1 -D_OPEN_SYS_SOCK_IPV6 -D_XOPEN_SOURCE=600 -D_XOPEN_SOURCE_EXTENDED"
+# Set up feature test macros required for features available on supported z/OS
+# systems
+def_os390_defs="$def_os390_defs -D_OPEN_THREADS=3"
+def_os390_defs="$def_os390_defs -D_UNIX03_SOURCE=1"
+def_os390_defs="$def_os390_defs -D_OPEN_SYS_FILE_EXT=1"
+def_os390_defs="$def_os390_defs -D_OPEN_SYS_SOCK_IPV6"
+def_os390_defs="$def_os390_defs -D_XOPEN_SOURCE=600"
+def_os390_defs="$def_os390_defs -D_XOPEN_SOURCE_EXTENDED"
+
+# These seem to work as of version 3.1, but didn't use to.  It's unknown when
+# they started to work.  khw thinks it was 2.5-ish, so didn't bother adding a
+# check for 3.1 vs 3.0
+if [ "$os390_ver" -lt 3 ]; then
+    d_gethostbyname_r='undef'
+    d_gethostent_r='undef'
+
+    # maximum signal number; not furnished by IBM
+    def_os390_defs="$def_os390_defs -DMAXSIG=39 -DNSIG=39";
+
+    # Configure says this exists, but it doesn't work properly.  See
+    # <54DCE073.4010100@khwilliamson.com>
+    d_dir_dd_fd='undef'
+
+    # Turning on optimization causes perl to not even compile from miniperl.
+    # You can override this with Configure -Doptimize='-O2' or somesuch.
+    case "$optimize" in
+      '') optimize=' ' ;;
+    esac
+fi
+
+# Some header files on z/OS have trigraphs in them that clang doesn't handle
+# without this option.
+def_os390_cppflags="$def_os390_cppflags -trigraphs"
+
+# Suppress the trigraph warnings, and some headers have pragmas that clang
+# isn't familiar with
+def_os390_ccflags="$def_os390_ccflags -Wno-trigraphs -Wno-unknown-pragmas"
+
+# Time to set the external 'cppflags'
+cppflags="$cppflags $def_os390_cppflags"
 
 # Combine -D with cflags
-case "$ccflags" in
-'') ccflags="$def_os390_cflags $def_os390_defs"  ;;
-*)  ccflags="$ccflags $cppflags $def_os390_cflags $def_os390_defs" ;;
-esac
-
-# Turning on optimization causes perl to not even compile from miniperl.  You
-# can override this with Configure -Doptimize='-O2' or somesuch.
-case "$optimize" in
-'') optimize=' ' ;;
-esac
-
-# To link via definition side decks we need the dll option
-# You can override this with Configure -Ucccdlflags or somesuch.
-case "$cccdlflags" in
-'') cccdlflags="$def_os390_cccdlflags -shared";;
-esac
+ccflags="$ccflags $def_os390_ccflags $cppflags $def_os390_defs"
 
 case "$so" in
 '') so='a' ;;
@@ -138,8 +186,8 @@ case "$ldflags" in
 esac
 
 # msf symbol information is now in NOLOAD section and so, while on disk,
-# does not require time to load but is useful in problem determination if required,
-# so it is no longer necessary to link with -Wl,EDIT=NO
+# does not require time to load but is useful in problem determination if
+# required, so it is no longer necessary to link with -Wl,EDIT=NO
 
 # In order to build with dynamic be sure to specify:
 #   Configure -Dusedl
@@ -147,13 +195,13 @@ esac
 # You might want to override some of this with things like:
 #  Configure -Dusedl -Ddlext=so -Ddlsrc=dl_dllload.xs.
 case "$usedl" in
-'')
+'undef')
    usedl='n'
    case "$dlext" in
    '') dlext='none' ;;
    esac
    ;;
-define)
+*)
    case "$useshrplib" in
    '') useshrplib='true' ;;
    esac
@@ -170,8 +218,14 @@ define)
    # module such as a DLL
    ccflags="$ccflags -D_SHR_ENVIRON"
 
-   cccdlflags="-c $def_os390_cccdlflags"
-   lddlflags="$def_os390_cccdlflags"
+   case "$def_os390_cccdlflags" in
+     '') lddlflags="-m64" # Revert this after merging
+                          # https://github.com/Perl/perl5/pull/24465
+        ;;
+     *) cccdlflags="-c $def_os390_cccdlflags"
+        lddlflags="$def_os390_cccdlflags"
+        ;;
+   esac
 
    # The following will need to be modified for the installed libperl.x.
    # The modification to Config.pm is done by the installperl script after the
@@ -197,9 +251,9 @@ case "$ldlibpthname" in
 '') ldlibpthname=LIBPATH ;;
 esac
 
-# The following should always be used.  Perhaps newer threads will work, but
-# when khw tried, other things would have had to be changed to get it to work,
-# so left as-is.
+# The following should always be used.  Not doing this causes compilation
+# errors in 3.1, and presumably earlier, with different function signatures
+# than perl expects.
 d_oldpthreads='define'
 
 # Header files to include.
@@ -210,6 +264,8 @@ esac
 case "$i_systime" in
 '') i_systime='define' ;;
 esac
+
+# Untested if this still is needed
 case "$d_pthread_atfork" in
 '') d_pthread_atfork='undef' ;;
 esac
@@ -222,18 +278,31 @@ case "$archname" in
 '') archname="$osname" ;;
 esac
 
-# Some header files on z/OS have trigraphs in them that clang doesn't handle
-# without this option.
-cppflags="-trigraphs"
+# In ASCII mode, if this is used, it causes generating some Makefiles to fail
+# due to EBCDIC being generated.  Pod-Checker is one.  It appears to work in
+# EBCDIC mode, but turning off anyway to be safe.
+case "$d_pipe2" in
+'') d_pipe2='undef' ;;
+esac
 
-# Suppress the trigraph warnings, and some headers have pragmas that clang
-# isn't familiar with
-def_os390_cflags="$def_os390_cflags -Wno-trigraphs -Wno-unknown-pragmas"
+# Configure's compilation of shm.h that is supposed to show if that file
+# includes a prototype definition currently results in garbage (reason unknown,
+# but maybe it's the same one as pipe2() not working) so the grep fails.
+case "$d_shmatprototype" in
+'') d_shmatprototype='define' ;;
+esac
 
-# The compilation of shm.h that is supposed to show if that file includes a
-# prototype definition currently results in garbage (reason unknown) so the
-# grep fails.
-d_shmatprototype='define'
+# z/OS sets this to either 0 or the illegal 0x500010DBE8.  So, say it's
+# unvavailable.
+case "$d_tm_tm_gmtoff" in
+'') d_tm_tm_gmtoff='undef' ;;
+esac
+
+# z/OS has these elements in 'struct stat', but often (maybe always) sets them
+# each to -1, an illegal value.
+case "$d_statblks" in
+'') d_statblks='undef' ;;
+esac
 
 # Note that Makefile.SH employs a bare yacc command to generate
 # perly.[hc], hence you may wish to:
@@ -282,21 +351,16 @@ EOWARN
    fi
 fi
 
-# These exist, but there is something wrong with either them, or our reentr.[ch],
-# and no one has felt it important enough to investigate/fix.  The
-# non-reentrant versions seem to work, but will have races in threads.
-d_gethostbyaddr_r='undef'
-d_gethostbyname_r='undef'
-d_gethostent_r='undef'
+# Doesn't find the prototype
+case "d_gethostbyaddr" in)
+  d_gethostbyaddr_r='undef'
+  ;;
+esac
 
 # nan() used to not work as expected: nan("") or nan("0") returned zero, not a
 # nan.  This may have been a C89 issue.
 # http://www-01.ibm.com/support/knowledgecenter/SSLTBW_1.12.0/com.ibm.zos.r12.bpxbd00/nan.htm%23nan?lang=en
 #d_nan='undef'
-
-# Configure says this exists, but it doesn't work properly.  See
-# <54DCE073.4010100@khwilliamson.com>
-d_dir_dd_fd='undef'
 
 ############################################################################
 # Thread support
@@ -315,5 +379,6 @@ $define|true|[yY]*)
    d_setlocale="undef"
    d_setlocale_accepts_any_locale_name="undef"
    d_has_C_UTF8="false"
+;;
 esac
 EOCBU
