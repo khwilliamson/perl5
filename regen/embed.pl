@@ -3888,11 +3888,14 @@ my %visibility_types = (
                        );
 
 my @az = ('a'..'z');
-my $never_visible_flags= "eX";
+my $never_visible_flags= "e";
 my $never_visible_flags_re = qr/[$never_visible_flags]/;
 
 my $visible_everywhere_flags = "AC";
+my $long_form_visible_everywhere_flags = "X$visible_everywhere_flags";
 my $visible_everywhere_flags_re = qr/[$visible_everywhere_flags]/;
+my $long_form_visible_everywhere_flags_re =
+                                    qr/[$long_form_visible_everywhere_flags]/;
 
 my $visible_outside_core_flags = "E$visible_everywhere_flags";
 my $visible_outside_core_flags_re = qr/[$visible_outside_core_flags]/;
@@ -4130,10 +4133,10 @@ sub generate_proto_h {
 
             # A publicly accessible non-static element needs to have a Perl_
             # prefix available to call it with (in case of name conflicts).
-            die_at_end "$plain_func: requires p flag because has A or C flag"
-                                    if $flags !~ /p/
-                                    && $flags =~ $visible_everywhere_flags_re
-                                    && $plain_func !~ /[Pp]erl/;
+            die_at_end "$plain_func: requires p flag because has [ACX] flag"
+                           if $flags !~ /p/
+                           && $flags =~ $long_form_visible_everywhere_flags_re
+                           && $plain_func !~ /[Pp]erl/;
 
             if ($never_returns) {
                 if ($ret_type eq 'void') {
