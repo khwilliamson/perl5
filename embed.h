@@ -50,6 +50,7 @@
 #   undef NETDB_R_OBSOLETE
 #   undef new_XPV
 #   undef new_XPVIV
+#   undef NO_EMULATE_THREAD_SAFE_LOCALES
 #   undef SHY_NATIVE
 #   undef sv_2num
 #   undef sv_has_valuemagic

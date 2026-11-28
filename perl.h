@@ -1540,9 +1540,16 @@ typedef enum {
     * Windows for any vintage recent enough to have _MSC_VER defined, or are
     * using UCRT (principally MINGW in this latter case) */
 #  if defined(USE_LOCALE_THREADS) && ! defined(NO_THREAD_SAFE_LOCALE)
-#    if  defined(USE_POSIX_2008_LOCALE)                                     \
-     || (defined(WIN32) && (defined(_MSC_VER) || (defined(_UCRT))))
+#    if  defined(USE_POSIX_2008_LOCALE)
 #      define USE_THREAD_SAFE_LOCALE
+#    elif defined(WIN32)
+#      if defined(_MSC_VER) || defined(_UCRT)
+#        define USE_THREAD_SAFE_LOCALE
+#      else
+            /* The emulation was not designed to work on Windows, nor does it.
+             * */
+#        define NO_EMULATE_THREAD_SAFE_LOCALES
+#      endif
 #    endif
 
      /* Temporary during 5.45 development to find any bugs */
